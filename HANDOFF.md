@@ -55,6 +55,16 @@ Load Video → 前処理(DWPose / Depth) → Wan(Animate / VACE) → VAE Decode
 
 まず試すなら、**Wan 2.2 TI2V 5B**（テンプレートにある）で動作確認をするのがおすすめ。
 
+## 日本語の音声を付ける（調査メモ）
+| やりたいこと | 方法 |
+|---|---|
+| 撮影したときの声をそのまま使う | VideoHelperSuiteの Load Video が出力する `audio` を、Video Combine の `audio` につなぐ。フレームを切った場合は、音声の長さも合わせること |
+| 読み上げ音声（TTS）を作る | **Qwen3-TTS**（ComfyUI-Qwen3-TTS／日本語対応、声のクローン可）、**TTS Audio Suite**（複数のエンジンを切り替えて使える）。ComfyUIの外で作るなら VOICEVOX や Style-Bert-VITS2 |
+| 声だけを別の声に変える | RVC（TTS Audio Suite に含まれている）。他人の声を使う場合は本人の許可が必要 |
+| 音声に口の動きを合わせる | **InfiniteTalk V2V**（動画と音声から口の動きを作り直す）、**Wan 2.2 S2V**（画像と音声から動画を作る） |
+
+おすすめの順番：映像を生成 → 音声を作る → InfiniteTalk V2Vで口の動きを合わせる → Video Combineで音声付きのmp4にする
+
 ## DVDディスクにする場合
 DVDStylerなどでmp4をDVD-Video形式（MPEG-2）に変換して書き込む。
 
