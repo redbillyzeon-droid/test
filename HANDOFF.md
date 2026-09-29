@@ -65,6 +65,13 @@ Load Video → 前処理(DWPose / Depth) → Wan(Animate / VACE) → VAE Decode
 
 おすすめの順番：映像を生成 → 音声を作る → InfiniteTalk V2Vで口の動きを合わせる → Video Combineで音声付きのmp4にする
 
+## 商用利用のライセンス（調査メモ・要確認）
+- 商用利用できる：Wan 2.2（Animate含む、Apache 2.0）、Qwen3-TTS（Apache 2.0）、Depth Anything V2 **Small**（Apache 2.0）、RIFE（MIT）
+- 使う前に確認：InfiniteTalk（Apache 2.0と思われる）、LightX2V LoRA、GGUF版の配布元、RVC・Style-Bert-VITS2の各音声モデル
+- **非商用のみ**：Depth Anything V2 Base/Large/Giant（CC-BY-NC-4.0）、4x-UltraSharp（CC BY-NC-SA とされる）、F5-TTSの公式モデル
+- VOICEVOX：キャラクターごとの利用規約に従う（多くは「VOICEVOX:キャラ名」のクレジット表記で商用利用できる）
+- 実在の人物の顔や声を使う場合は、ライセンスとは別に本人の許可が必要
+
 ## DVDディスクにする場合
 DVDStylerなどでmp4をDVD-Video形式（MPEG-2）に変換して書き込む。
 
