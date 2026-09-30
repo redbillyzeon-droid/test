@@ -1,0 +1,18 @@
+[project]
+name = "aialbum"
+version = "0.1.0"
+description = "Stable Diffusion (Forge / Forge Neo) と NovelAI の生成画像を、埋め込まれたタグで探せるアルバム"
+requires-python = ">=3.10"
+dependencies = ["fastapi>=0.110", "uvicorn>=0.29", "pillow>=10.0", "numpy>=1.24"]
+
+[project.scripts]
+aialbum = "aialbum.__main__:main"
+
+[tool.setuptools.packages.find]
+include = ["aialbum*"]
+
+[tool.setuptools.package-data]
+aialbum = ["static/*"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

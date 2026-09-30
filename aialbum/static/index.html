@@ -1,0 +1,109 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>AI Image Album</title>
+  <link rel="icon" href="data:,">
+  <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+<header class="topbar">
+  <div class="brand">AI Image Album</div>
+  <div class="search">
+    <div id="chips" class="chips"></div>
+    <input id="search-input" type="text" autocomplete="off"
+           placeholder="タグで検索 (Enterで追加 / -で除外 / a | b でどれか / &quot;文字列&quot;)">
+    <ul id="suggest" class="suggest" hidden></ul>
+  </div>
+  <div class="controls">
+    <select id="sort" title="並べ替え">
+      <option value="mtime">更新日時</option>
+      <option value="name">ファイル名</option>
+      <option value="folder">フォルダ</option>
+      <option value="model">モデル</option>
+      <option value="seed">Seed</option>
+      <option value="steps">Steps</option>
+      <option value="pixels">画像サイズ</option>
+      <option value="tags">タグ数</option>
+      <option value="random">ランダム</option>
+    </select>
+    <button id="order" class="icon" title="昇順 / 降順">↓</button>
+    <input id="size" type="range" min="100" max="480" step="10" title="サムネイルの大きさ">
+    <button id="export" title="表示中の結果をCSVで保存">CSV</button>
+    <button id="rescan" title="フォルダを読み直す">再読込</button>
+  </div>
+</header>
+
+<div class="layout">
+  <aside class="sidebar">
+    <section>
+      <h3>フォルダ</h3>
+      <ul id="folders" class="folders"></ul>
+      <form id="add-folder" class="inline-form">
+        <input name="path" type="text" placeholder="フォルダのパスを貼り付け">
+        <button>追加</button>
+      </form>
+    </section>
+    <section>
+      <h3>マイタグ</h3>
+      <ul id="usertags" class="taglist"></ul>
+    </section>
+    <section class="facet-section">
+      <h3>タグ <small>(クリックで絞り込み / 右クリックで除外)</small></h3>
+      <div id="facet-tabs" class="tabs">
+        <button data-kind="prompt" class="active">プロンプト</button>
+        <button data-kind="char">キャラ</button>
+        <button data-kind="lora">LoRA</button>
+        <button data-kind="model">モデル</button>
+        <button data-kind="source">生成元</button>
+        <button data-kind="negative">ネガ</button>
+      </div>
+      <input id="facet-filter" type="text" placeholder="一覧を絞り込む">
+      <ul id="facets" class="taglist"></ul>
+    </section>
+  </aside>
+
+  <main>
+    <div class="statusbar">
+      <span id="count"></span>
+      <span id="scan-status"></span>
+    </div>
+    <div id="selection-bar" class="selection-bar" hidden>
+      <span id="selection-count"></span>
+      <button id="sel-tag">タグを付ける</button>
+      <button id="sel-untag">タグを外す</button>
+      <button id="sel-move">移動</button>
+      <button id="sel-copy">コピー</button>
+      <button id="sel-all">すべて選択</button>
+      <button id="sel-clear">選択解除</button>
+    </div>
+    <div id="grid" class="grid"></div>
+    <div id="sentinel" class="sentinel"></div>
+    <div id="empty" class="empty" hidden>
+      <p>画像がありません。</p>
+      <p>左の「フォルダ」に、Forge Neo の <code>outputs</code> フォルダや NovelAI の保存フォルダを追加してください。</p>
+    </div>
+  </main>
+</div>
+
+<div id="viewer" class="viewer" hidden>
+  <div class="viewer-image">
+    <button id="v-prev" class="nav prev" title="前へ (←)">‹</button>
+    <img id="v-img" alt="">
+    <button id="v-next" class="nav next" title="次へ (→)">›</button>
+  </div>
+  <aside class="viewer-info">
+    <div class="viewer-head">
+      <button id="v-fav" class="fav" title="お気に入り (F)">☆</button>
+      <span id="v-name" class="v-name"></span>
+      <button id="v-close" class="icon" title="閉じる (Esc)">✕</button>
+    </div>
+    <div id="v-body"></div>
+  </aside>
+</div>
+
+<div id="toast" class="toast" hidden></div>
+<script src="/static/app.js"></script>
+</body>
+</html>
