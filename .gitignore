@@ -3,3 +3,14 @@ __pycache__/
 .venv/
 .pytest_cache/
 *.egg-info/
+
+# Claude Code: 個人用設定・バックアップ・一時ログ（setup 2026-10-05）
+CLAUDE.local.md
+AGENTS.override.md
+.claude/settings.local.json
+.claude/backups/
+.claude/logs/
+tasks/private/
+*.log
+.env
+.env.*
