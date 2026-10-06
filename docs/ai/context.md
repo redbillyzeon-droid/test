@@ -10,7 +10,7 @@
 |---|---|---|
 | aialbum | 生成画像を埋め込みタグで検索・整理するローカルWebアプリ（Python 3.10 以上、FastAPI、SQLite） | 実装済み。テストあり（`tests/`） |
 | ComfyUI V2V メモ | 自分で撮った動画から、実写風の動画を作る手順の調査（`HANDOFF.md`） | 調査メモ。方式A/Bは未決定 |
-| ゲーム開発 | 無人島に転生した主人公と、人外の女性5人の物語。企画は `docs/game/plan.md` | 方針決定済み（ティラノビルダー、成人向け、14日構成、NTRはコノハの専用ルート）。キャラクターは `docs/game/characters.md`、骨組みは `docs/game/outline.md`。台本は未着手 |
+| ゲーム開発 | 無人島に転生した主人公と、人外の女性5人の物語。企画は `docs/game/plan.md` | 方針決定済み（ティラノビルダー、成人向け、14日構成、NTRは相棒と挑んで負けたときの展開（5人分））。キャラクターは `docs/game/characters.md`、骨組みは `docs/game/outline.md`。台本は未着手 |
 
 ## 利用者
 
