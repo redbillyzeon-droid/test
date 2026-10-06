@@ -1,0 +1,69 @@
+/* island_battle：戦闘画面の試作。座標は 1280×720 のゲーム画面が基準 */
+.ib-root {
+  position: absolute; left: 0; top: 0; width: 1280px; height: 720px; z-index: 100000000;
+  overflow: hidden; color: #2b241c; user-select: none;
+  font-family: "Noto Serif CJK JP", "Noto Serif JP", "Yu Mincho", serif;
+  background:
+    radial-gradient(ellipse at 50% 20%, rgba(190,60,90,.55), transparent 55%),
+    radial-gradient(ellipse at 20% 40%, rgba(120,30,70,.6), transparent 50%),
+    linear-gradient(#2a0d1f, #12060f 70%, #080306);
+}
+.ib-enemybar { position: absolute; left: 20px; top: 18px; display: flex; align-items: center; gap: 10px;
+  background: #e9e2d2; border: 3px solid #1a1410; padding: 4px 10px; }
+.ib-enemyname { background: #1a1410; color: #e9e2d2; padding: 4px 18px; font-weight: bold; letter-spacing: .1em; }
+.ib-cells { display: flex; gap: 6px; }
+.ib-cell { width: 22px; height: 22px; background: #6b2a2a; border: 2px solid #1a1410; }
+.ib-cell.ib-empty { background: #4a4a4a; }
+
+.ib-bond { position: absolute; left: 50%; top: 14px; transform: translateX(-50%); text-align: center;
+  background: #c98a2b; border: 3px solid #3a2410; padding: 6px 14px; color: #2a1608; }
+.ib-bond-label { font-size: 12px; letter-spacing: .3em; background: #3a2410; color: #f3d9a4; padding: 2px 8px; }
+.ib-bond-gems { margin-top: 6px; font-size: 26px; letter-spacing: 6px; }
+
+.ib-auto { position: absolute; right: 20px; top: 18px; background: #ddd6c6; border: 3px solid #1a1410;
+  padding: 10px 14px; font-size: 16px; cursor: pointer; }
+.ib-auto.ib-on { background: #f0a52a; font-weight: bold; }
+
+.ib-menu { position: absolute; left: 110px; top: 140px; width: 220px; background: rgba(240,235,222,.95);
+  border: 2px solid #1a1410; box-shadow: 0 0 30px rgba(255,255,255,.35); padding: 6px 0 10px; }
+.ib-menu-title { font-size: 13px; padding: 2px 14px 6px; color: #6b5e4b; letter-spacing: .1em; }
+.ib-item { display: flex; align-items: center; gap: 14px; padding: 8px 18px; font-size: 22px; cursor: pointer;
+  border-bottom: 1px solid #bdb4a2; letter-spacing: .3em; }
+.ib-ico { width: 26px; height: 26px; background: #3d3a35; border-radius: 3px; }
+.ib-item.ib-sel { background: linear-gradient(90deg, #f0a52a, #e8b04a); font-weight: bold; margin: 0 -10px; padding-left: 28px; }
+.ib-item.ib-disabled .ib-label { color: #a59c8c; }
+
+.ib-stage { position: absolute; left: 400px; right: 40px; top: 110px; height: 380px;
+  display: flex; align-items: flex-end; justify-content: center; gap: 40px; }
+.ib-enemy { display: flex; flex-direction: column; align-items: center; transition: opacity .4s; }
+.ib-enemy-body { width: 150px; height: 230px; border-radius: 45% 45% 30% 30%; opacity: .8;
+  background: radial-gradient(circle at 50% 30%, #4b4a5c, #15141c 70%) center / contain no-repeat;
+  box-shadow: 0 0 40px rgba(200,80,120,.5); }
+.ib-boss .ib-enemy-body { width: 200px; height: 340px; opacity: 1;
+  background: radial-gradient(circle at 50% 25%, #e8e4dc 0 18%, #2a2733 19%, #0e0d12 75%) center / contain no-repeat; }
+.ib-enemy-name { margin-top: 6px; color: #f3d9a4; font-size: 16px; letter-spacing: .2em; text-shadow: 0 0 6px #000; }
+.ib-enemy-hp { width: 120px; height: 5px; background: #3a3a3a; margin-top: 4px; }
+.ib-enemy-hp i { display: block; height: 100%; background: #d9534f; transition: width .3s; }
+.ib-enemy.ib-dead { opacity: .15; }
+.ib-hit { animation: ib-shake .3s; }
+@keyframes ib-shake { 0%,100% { transform: translateX(0); } 25% { transform: translateX(-8px); } 75% { transform: translateX(8px); } }
+
+.ib-party { position: absolute; left: 20px; bottom: 18px; display: flex; gap: 22px; }
+.ib-card { position: relative; width: 190px; height: 190px; transition: transform .2s; }
+.ib-card.ib-active { transform: translateY(-12px); }
+.ib-card.ib-down { filter: grayscale(1) brightness(.6); }
+.ib-photo { position: absolute; left: 0; top: 10px; width: 110px; height: 160px; background: #f4f0e6;
+  border: 6px solid #f4f0e6; box-shadow: 2px 3px 8px rgba(0,0,0,.6); transform: rotate(-2deg); }
+.ib-face { width: 100%; height: 100%; display: flex; align-items: center; justify-content: center;
+  font-size: 40px; color: #f4f0e6; background: #4a5568 center / cover no-repeat; }
+.ib-stats { position: absolute; left: 96px; top: 40px; width: 92px; }
+.ib-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px; }
+.ib-k { background: #c9772a; color: #fff; font-size: 12px; padding: 1px 4px; font-family: sans-serif; }
+.ib-v { color: #f4f0e6; font-size: 22px; font-weight: bold; font-family: sans-serif; text-shadow: 0 0 4px #000; }
+.ib-bar { height: 6px; background: #3a3a3a; margin-top: -2px; margin-bottom: 8px; }
+.ib-bar i { display: block; height: 100%; background: #4fbf5a; transition: width .3s; }
+.ib-bar.ib-mind i { background: #6a8ee8; }
+.ib-name { position: absolute; left: 6px; top: 150px; color: #f4f0e6; font-size: 14px; text-shadow: 0 0 4px #000; }
+
+.ib-log { position: absolute; left: 480px; right: 40px; bottom: 40px; min-height: 28px; padding: 10px 16px;
+  background: rgba(0,0,0,.55); color: #f4f0e6; font-size: 18px; border-left: 4px solid #f0a52a; }
