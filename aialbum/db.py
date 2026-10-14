@@ -86,8 +86,19 @@ class Database:
     def folders(self) -> list[str]:
         return [r["path"] for r in self.query("SELECT path FROM folders ORDER BY path")]
 
-    def add_folder(self, path: str) -> None:
-        self.execute("INSERT OR IGNORE INTO folders(path) VALUES (?)", (path,))
+    def add_folder(self, path: str, absorb: Iterable[str] = ()) -> None:
+        """フォルダを登録する。absorb に渡した (path の中にある) 登録済みフォルダは path にまとめる。
+
+        親子のフォルダを別々に登録すると、同じ画像を交互に読み直し続けてしまうため。
+        """
+        with self._lock:
+            self.conn.execute("INSERT OR IGNORE INTO folders(path) VALUES (?)", (path,))
+            for child in absorb:
+                if child == path:
+                    continue
+                self.conn.execute("UPDATE images SET root = ? WHERE root = ?", (path, child))
+                self.conn.execute("DELETE FROM folders WHERE path = ?", (child,))
+            self.conn.commit()
 
     def remove_folder(self, path: str) -> None:
         with self._lock:

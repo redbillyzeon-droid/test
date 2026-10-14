@@ -11,8 +11,10 @@ import sys
 from pathlib import Path
 from typing import Any
 
-from fastapi import FastAPI, HTTPException, Query
-from fastapi.responses import FileResponse, StreamingResponse
+from urllib.parse import urlsplit
+
+from fastapi import FastAPI, HTTPException, Query, Request
+from fastapi.responses import FileResponse, JSONResponse, StreamingResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 
@@ -62,7 +64,21 @@ def _unique_dest(dest_dir: str, name: str) -> str:
     return target
 
 
-def create_app(data_dir: str | Path, stealth: str = "auto", thumb_size: int = 384) -> FastAPI:
+LOCAL_HOSTS = {"127.0.0.1", "localhost", "::1"}
+SAFE_METHODS = {"GET", "HEAD", "OPTIONS"}
+
+
+def _hostname(netloc: str) -> str:
+    return (urlsplit("//" + netloc).hostname or "").lower()
+
+
+def create_app(
+    data_dir: str | Path,
+    stealth: str = "auto",
+    thumb_size: int = 384,
+    allowed_hosts: set[str] | None = None,
+) -> FastAPI:
+    """allowed_hosts: 受け付ける Host 名。None ならローカルのみ、空集合なら確認しない。"""
     data_dir = Path(data_dir)
     data_dir.mkdir(parents=True, exist_ok=True)
     db = Database(data_dir / "index.sqlite3")
@@ -72,6 +88,19 @@ def create_app(data_dir: str | Path, stealth: str = "auto", thumb_size: int = 38
     app = FastAPI(title="AI Image Album")
     app.state.db = db
     app.state.scanner = scanner
+    hosts = LOCAL_HOSTS if allowed_hosts is None else {h.lower() for h in allowed_hosts}
+
+    @app.middleware("http")
+    async def guard_local(request: Request, call_next):
+        # DNS リバインディング対策: 他サイトから 127.0.0.1 を名乗って画像を読まれないようにする
+        host = request.headers.get("host", "")
+        if hosts and _hostname(host) not in hosts:
+            return JSONResponse({"detail": "許可されていないホストです"}, status_code=403)
+        # CSRF 対策: 他サイトのページから移動・スキャンなどを実行させない
+        origin = request.headers.get("origin")
+        if request.method not in SAFE_METHODS and origin and urlsplit(origin).netloc != host:
+            return JSONResponse({"detail": "許可されていない送信元です"}, status_code=403)
+        return await call_next(request)
 
     def image_or_404(image_id: int) -> dict[str, Any]:
         item = db.get_image(image_id)
@@ -105,7 +134,7 @@ def create_app(data_dir: str | Path, stealth: str = "auto", thumb_size: int = 38
         for root in db.folders():
             if _is_within(path, root):
                 raise HTTPException(400, f"すでに登録済みのフォルダに含まれています: {root}")
-        db.add_folder(path)
+        db.add_folder(path, absorb=[r for r in db.folders() if _is_within(r, path)])
         scanner.start([path])
         return {"path": path}
 
@@ -272,7 +301,7 @@ def create_app(data_dir: str | Path, stealth: str = "auto", thumb_size: int = 38
         root = next((r for r in roots if _is_within(dest, r)), None)
         if root is None:
             # 登録外のフォルダへ振り分けたときは、そのフォルダも登録して見失わないようにする
-            db.add_folder(dest)
+            db.add_folder(dest, absorb=[r for r in roots if _is_within(r, dest)])
             root = dest
         done, errors = 0, []
         for image_id in body.ids:
@@ -280,6 +309,8 @@ def create_app(data_dir: str | Path, stealth: str = "auto", thumb_size: int = 38
             if not rows:
                 continue
             src = rows[0]["path"]
+            if body.mode != "copy" and os.path.normcase(os.path.dirname(src)) == os.path.normcase(dest):
+                continue  # 同じフォルダへの移動は何もしない ("(1)" 付きに改名しない)
             try:
                 target = _unique_dest(dest, os.path.basename(src))
                 if body.mode == "copy":

@@ -32,14 +32,19 @@ def main(argv: list[str] | None = None) -> None:
 
     import uvicorn
 
-    from .server import _norm, create_app
+    from .server import _is_within, _norm, create_app
 
-    app = create_app(args.data_dir, stealth=args.stealth, thumb_size=args.thumb_size)
+    # 0.0.0.0 などで公開したときは LAN からのアクセスを許可する
+    allowed = None if args.host in ("127.0.0.1", "localhost", "::1") else set()
+    app = create_app(args.data_dir, stealth=args.stealth, thumb_size=args.thumb_size, allowed_hosts=allowed)
     db = app.state.db
     for folder in args.add:
         path = _norm(folder)
         if os.path.isdir(path):
-            db.add_folder(path)
+            roots = db.folders()
+            if any(_is_within(path, r) for r in roots):
+                continue
+            db.add_folder(path, absorb=[r for r in roots if _is_within(r, path)])
         else:
             print(f"フォルダが見つかりません: {path}")
 

@@ -20,7 +20,7 @@ def env(tmp_path):
     make_plain_png(images / "plain.png")
 
     app = create_app(tmp_path / "data")
-    client = TestClient(app)
+    client = TestClient(app, base_url="http://127.0.0.1:8765")
     res = client.post("/api/folders", json={"path": str(images)})
     assert res.status_code == 200
     app.state.scanner.wait()
@@ -123,3 +123,43 @@ def test_export_csv(env):
     assert res.status_code == 200
     lines = res.text.strip().splitlines()
     assert len(lines) == 3
+
+
+def test_rejects_foreign_host_and_origin(env):
+    client, _, _ = env
+    # DNS リバインディング: 他のホスト名で来たアクセスは断る
+    assert client.get("/api/images", headers={"host": "evil.example"}).status_code == 403
+    # CSRF: 他サイトからの書き込み系リクエストは断る
+    assert client.post("/api/scan", headers={"origin": "http://evil.example"}).status_code == 403
+    assert client.post("/api/scan", headers={"origin": "http://127.0.0.1:8765"}).status_code == 200
+
+
+def test_move_to_same_folder_keeps_name(env):
+    client, images, _ = env
+    item = client.get("/api/images", params={"folder": str(images / "nai"), "sort": "name", "order": "asc"}).json()["items"][0]
+    res = client.post("/api/move", json={"ids": [item["id"]], "dest": str(images / "nai")}).json()
+    assert res["done"] == 0 and not res["errors"]
+    assert sorted(os.listdir(images / "nai")) == ["n.png", "s.png"]
+
+
+def test_adding_parent_folder_absorbs_child(tmp_path):
+    parent = tmp_path / "images"
+    (parent / "child").mkdir(parents=True)
+    make_a1111_png(parent / "child" / "a.png")
+    make_nai_png(parent / "b.png")
+
+    app = create_app(tmp_path / "data")
+    client = TestClient(app, base_url="http://127.0.0.1:8765")
+    assert client.post("/api/folders", json={"path": str(parent / "child")}).status_code == 200
+    app.state.scanner.wait()
+    assert client.post("/api/folders", json={"path": str(parent)}).status_code == 200
+    app.state.scanner.wait()
+
+    folders = client.get("/api/folders").json()
+    assert [f["path"] for f in folders] == [os.path.normpath(str(parent))]
+    assert folders[0]["count"] == 2
+    # 再スキャンで同じ画像を読み直さない
+    client.post("/api/scan")
+    app.state.scanner.wait()
+    status = client.get("/api/scan").json()
+    assert status["added"] == 0 and status["removed"] == 0
