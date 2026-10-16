@@ -1,0 +1,108 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<title>会話画面モック</title>
+<style>
+  /* 仮の図形だけで作った、会話画面（2D）の配置確認用モック。絵は NovelAI で別に作る */
+  body { margin: 0; background: #000; }
+  #screen { position: relative; width: 1280px; height: 720px; overflow: hidden;
+    font-family: "Noto Sans CJK JP", "Noto Sans JP", sans-serif; }
+
+  /* 背景：浜辺（昼）のつもりの仮の色 */
+  #bg { position: absolute; inset: 0;
+    background:
+      linear-gradient(#7cc6f2 0%, #bfe6fb 42%, #f4e6c4 43%, #ead7a8 70%, #d9c28c 100%); }
+  #bg .sea { position: absolute; left: 0; right: 0; top: 300px; height: 70px;
+    background: linear-gradient(#3aa6d8, #79cbe8); }
+  #bg .jungle { position: absolute; left: -40px; top: 170px; width: 520px; height: 150px; border-radius: 50% 50% 0 0;
+    background: #3e7d4a; }
+
+  /* 外枠：上下の黒い帯（見本の雰囲気） */
+  .frame { position: absolute; left: 0; right: 0; height: 22px; background: #111; }
+  .frame.top { top: 0; } .frame.bottom { bottom: 0; }
+
+  /* 左上：日付と時間帯 */
+  #date { position: absolute; left: 30px; top: 34px; transform: rotate(-7deg); display: flex; align-items: flex-end; gap: 10px; }
+  #date .day { background: #fff; color: #111; font-weight: 900; font-size: 64px; line-height: 1;
+    padding: 4px 16px 6px; border: 5px solid #111; box-shadow: 6px 6px 0 #111; }
+  #date .day small { font-size: 26px; margin-left: 4px; }
+  #date .side { display: flex; flex-direction: column; gap: 6px; }
+  #date .weather { background: #111; color: #f0c43a; font-size: 26px; padding: 0 10px; width: max-content; }
+  #date .slot { background: #e8502a; color: #fff; font-weight: 900; font-size: 30px; padding: 0 16px;
+    border: 4px solid #111; transform: rotate(4deg); }
+
+  /* 右上：残り日数と次にやること */
+  #hint { position: absolute; right: 24px; top: 34px; text-align: right; }
+  #hint .left { display: inline-block; background: #111; color: #fff; font-weight: 900; padding: 4px 14px; font-size: 20px;
+    transform: skewX(-12deg); }
+  #hint .left b { color: #f0c43a; font-size: 26px; }
+  #hint .next { margin-top: 8px; background: rgba(255,255,255,.9); color: #111; padding: 6px 12px; font-size: 15px;
+    border-left: 6px solid #e8502a; }
+
+  /* 中央：立ち絵（仮のシルエット） */
+  .sprite { position: absolute; bottom: 120px; border-radius: 48% 48% 10% 10%; }
+  .sprite .label { position: absolute; bottom: -28px; width: 100%; text-align: center; color: #333; font-size: 14px; }
+  #s1 { left: 520px; width: 170px; height: 420px; background: linear-gradient(#d9822b, #b8641e); opacity: .95; }
+  #s2 { left: 780px; width: 150px; height: 380px; background: linear-gradient(#4a5568, #2d3748); opacity: .9; }
+
+  /* 左下：顔の絵（バストアップ） */
+  #bust { position: absolute; left: 20px; bottom: 22px; width: 330px; height: 360px;
+    clip-path: polygon(0 12%, 100% 0, 92% 100%, 0 100%); background: linear-gradient(160deg, #f0a24a, #d9822b 60%, #a85a18);
+    display: flex; align-items: center; justify-content: center; color: rgba(255,255,255,.85); font-size: 22px; font-weight: 700; }
+  #bust::after { content: ""; position: absolute; inset: 0; border: 6px solid #111; clip-path: inherit; }
+
+  /* 下：吹き出し型の会話の枠 */
+  #box { position: absolute; left: 290px; right: 70px; bottom: 34px; height: 170px; }
+  #box .shape { position: absolute; inset: 0; background: #111;
+    clip-path: polygon(3% 0, 100% 6%, 97% 100%, 0 92%); }
+  #box .shape.inner { inset: 6px; background: #1d1d1f; clip-path: polygon(3% 0, 100% 6%, 97% 100%, 0 92%); }
+  #box .tail { position: absolute; left: -38px; top: 40px; width: 60px; height: 40px; background: #111;
+    clip-path: polygon(100% 0, 0 60%, 100% 100%); }
+  #name { position: absolute; left: 330px; bottom: 182px; transform: rotate(-4deg); z-index: 2; }
+  #name span { display: inline-block; background: #fff; color: #111; font-weight: 900; font-size: 24px; padding: 4px 22px;
+    border: 4px solid #111; clip-path: polygon(6% 0, 100% 0, 94% 100%, 0 100%); }
+  #text { position: absolute; left: 380px; right: 120px; bottom: 70px; color: #fff; font-size: 24px; line-height: 1.7; z-index: 2; }
+  #arrow { position: absolute; right: 110px; bottom: 48px; z-index: 2; width: 0; height: 0;
+    border-left: 16px solid transparent; border-right: 16px solid transparent; border-top: 20px solid #fff; }
+
+  /* 右下：操作の案内 */
+  #ops { position: absolute; right: 18px; bottom: 30px; display: flex; flex-direction: column; gap: 6px; z-index: 3; }
+  #ops div { background: #fff; color: #111; font-weight: 800; font-size: 14px; padding: 3px 10px; border: 3px solid #111;
+    transform: skewX(-10deg); text-align: center; }
+
+  #note { position: absolute; left: 50%; top: 4px; transform: translateX(-50%); color: rgba(255,255,255,.55); font-size: 11px; z-index: 5; }
+</style>
+</head>
+<body>
+<div id="screen">
+  <div id="bg"><div class="sea"></div><div class="jungle"></div></div>
+
+  <div id="s1" class="sprite"><div class="label">立ち絵（コノハ）</div></div>
+  <div id="s2" class="sprite"><div class="label">立ち絵（ほかの人物）</div></div>
+
+  <div class="frame top"></div><div class="frame bottom"></div>
+
+  <div id="date">
+    <span class="day">5<small>日目</small></span>
+    <span class="side"><span class="weather">☀ 晴れ</span><span class="slot">昼</span></span>
+  </div>
+
+  <div id="hint">
+    <div class="left">GM との勝負まで <b>9</b> 日</div>
+    <div class="next">次にやること：作業台を建てると、松明が作れる</div>
+  </div>
+
+  <div id="bust">顔の絵（バストアップ）</div>
+
+  <div id="box"><div class="tail"></div><div class="shape"></div><div class="shape inner"></div></div>
+  <div id="name"><span>コノハ</span></div>
+  <div id="text">ユウ、見て見て！　でっかい魚！<br>今日のごはんは、ボクが獲ったんだよ！</div>
+  <div id="arrow"></div>
+
+  <div id="ops"><div>早送り</div><div>オート</div><div>ログ</div></div>
+
+  <div id="note">配置確認用モック（仮の図形のみ。絵は NovelAI で別に用意）</div>
+</div>
+</body>
+</html>
