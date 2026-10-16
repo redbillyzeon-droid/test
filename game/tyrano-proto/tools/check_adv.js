@@ -41,10 +41,10 @@ const url = process.argv[2] || "http://localhost:8799/index.html";
     check("GM との勝負までの日数が出る（9日）", s.left.includes("9"), s.left);
     check("次にやることが出る", s.next.includes("作業台"), s.next);
     check("コノハが話すと、名前の札と顔の絵が出る", s.name === "コノハ" && s.bust, JSON.stringify(s));
-    check("本文のフォントが組み合わせA（Zen Kaku Gothic New）", s.bodyFont.includes("LI ZenKaku"), s.bodyFont);
-    check("名前の札のフォントが組み合わせA（Dela Gothic One）", s.nameFont.includes("LI Dela"), s.nameFont);
+    check("本文のフォントがZen Kaku Gothic New", s.bodyFont.includes("LI ZenKaku"), s.bodyFont);
+    check("名前の札のフォントがDela Gothic One", s.nameFont.includes("LI Dela"), s.nameFont);
     const fontsLoaded = await page.evaluate(() => document.fonts.check('24px "LI ZenKaku"') && document.fonts.check('24px "LI Dela"'));
-    check("フォントの読み込み", fontsLoaded, "fonts/ にフォントがない場合は、game/tools/fetch_fonts.py を実行する");
+    check("フォントの読み込み", fontsLoaded, "fonts/ にフォントがない");
 
     await page.click(".li-ops div:nth-child(3)"); // ログ
     await page.waitForTimeout(800);
@@ -74,10 +74,6 @@ const url = process.argv[2] || "http://localhost:8799/index.html";
     await page.waitForTimeout(300);
     const autoOff = await page.evaluate(() => TYRANO.kag.stat.is_auto === false);
     check("オートのボタンで、オートを入り切りできる", autoOn && autoOff);
-
-    await page.evaluate(() => AdvUI.setTheme("C"));
-    const themeC = await page.evaluate(() => getComputedStyle(document.querySelector(".chara_name_area")).fontFamily);
-    check("フォントの組み合わせを C に切りかえられる", themeC.includes("LI Decol"), themeC);
 
     check("ブラウザのエラーがない", errors.length === 0, errors.slice(0, 5).join(" / "));
     await browser.close();

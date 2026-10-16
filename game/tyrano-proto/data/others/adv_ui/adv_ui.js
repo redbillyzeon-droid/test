@@ -97,17 +97,9 @@
             else base.appendChild(hud);
             this.hud = hud;
 
-            this.setTheme(opts.theme || "A");
             this.watchName();
             this.render();
             return this;
-        },
-
-        setTheme: function (name) {
-            var root = document.documentElement;
-            ["A", "B", "C"].forEach(function (t) { root.classList.remove("li-theme-" + t); });
-            root.classList.add("li-theme-" + name);
-            this.theme = name;
         },
 
         setDate: function (day, slot, weather, next) {

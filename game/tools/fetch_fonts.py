@@ -4,7 +4,10 @@
 ライセンス文（OFL.txt）も一緒に保存する。同梱するときは、ライセンス文もゲームに入れること。
 
 取ってくる元：GitHub の google/fonts リポジトリ（raw.githubusercontent.com）
-保存先：game/tyrano-proto/data/others/adv_ui/fonts/（Git 管理外。採用が決まったものだけ、あとで管理に入れる）
+保存先：game/tyrano-proto/data/others/adv_ui/fonts/
+
+2026-10-16 に組み合わせ A（Dela Gothic One ＋ Zen Kaku Gothic New）に決まり、
+この2書体とライセンス文はリポジトリに入れた。このスクリプトは、ファイルがなくなったときの取り直し用。
 
 使い方：python game/tools/fetch_fonts.py
 """
@@ -23,12 +26,6 @@ FONTS = {
     "ZenKakuGothicNew-Medium.ttf": "zenkakugothicnew/ZenKakuGothicNew-Medium.ttf",
     "ZenKakuGothicNew-Bold.ttf": "zenkakugothicnew/ZenKakuGothicNew-Bold.ttf",
     "ZenKakuGothicNew-OFL.txt": "zenkakugothicnew/OFL.txt",
-    "RocknRollOne-Regular.ttf": "rocknrollone/RocknRollOne-Regular.ttf",
-    "RocknRollOne-OFL.txt": "rocknrollone/OFL.txt",
-    "ZenMaruGothic-Medium.ttf": "zenmarugothic/ZenMaruGothic-Medium.ttf",
-    "ZenMaruGothic-OFL.txt": "zenmarugothic/OFL.txt",
-    "KaiseiDecol-Bold.ttf": "kaiseidecol/KaiseiDecol-Bold.ttf",
-    "KaiseiDecol-OFL.txt": "kaiseidecol/OFL.txt",
 }
 
 OUT = Path(__file__).resolve().parents[1] / "tyrano-proto" / "data" / "others" / "adv_ui" / "fonts"

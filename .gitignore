@@ -15,4 +15,9 @@ tasks/private/
 .env
 .env.*
 outputs/nai/
-game/tyrano-proto/data/others/adv_ui/fonts/
+game/tyrano-proto/data/others/adv_ui/fonts/*
+!game/tyrano-proto/data/others/adv_ui/fonts/DelaGothicOne-Regular.ttf
+!game/tyrano-proto/data/others/adv_ui/fonts/DelaGothicOne-OFL.txt
+!game/tyrano-proto/data/others/adv_ui/fonts/ZenKakuGothicNew-Medium.ttf
+!game/tyrano-proto/data/others/adv_ui/fonts/ZenKakuGothicNew-Bold.ttf
+!game/tyrano-proto/data/others/adv_ui/fonts/ZenKakuGothicNew-OFL.txt

@@ -42,7 +42,7 @@
 | `data/scenario/first.ks` | **テスト用のプロジェクトでだけ**使う first.ks。本番や前作のプロジェクトの first.ks は上書きしない |
 | `data/others/adv_ui/`、`data/scenario/adv_test.ks`、`data/scenario/test_menu.ks` | 会話画面の試作（2026-10-16 に追加）。`first.ks` は、まずテストを選ぶメニューに進む |
 | `data/bgimage/`、`data/fgimage/chara/proto/` | 仮の背景と立ち絵 |
-| `tools/check_adv.js` | 会話画面の自動テスト（15項目） |
+| `tools/check_adv.js` | 会話画面の自動テスト（14項目） |
 | `tools/check_battle.js` | ブラウザで自動操作して確かめるスクリプト（Node.js と Playwright が必要）。ティラノビルダーのプレビューではなく、ブラウザで開いたときに使う |
 
 ティラノスクリプト本体は、利用規約で再配布が禁止されているので、リポジトリには入れていない。
@@ -53,7 +53,7 @@
 
 1. ブランチを取ってくる：`git fetch origin claude/nifty-newton-3wjyv0` のあと、`git checkout claude/nifty-newton-3wjyv0`（クローンがなければ、先にクローンする）。
 2. ティラノビルダーで、**新しいプロジェクト**を作る（例：`island_battle_test`）。画面サイズは 1280×720。
-3. フォントを取ってくる：`python game/tools/fetch_fonts.py`（`game/tyrano-proto/data/others/adv_ui/fonts/` に保存される。Git には入っていない）。
+3. フォントは `game/tyrano-proto/data/others/adv_ui/fonts/` に入っている（組み合わせ A）。なければ `python game/tools/fetch_fonts.py` で取ってくる。
 4. 新しいプロジェクトのフォルダの `data/` に、`game/tyrano-proto/data/` の中身をコピーする。`first.ks` は上書きしてよい（新しいプロジェクトなので）。
 5. ティラノビルダーのプレビューで起動する。最初にメニューが出るので、「会話画面のテスト」と「戦闘画面のテスト」をそれぞれ選ぶ。
 6. 下の「合格の条件」を一つずつ確かめて、結果を記録する。

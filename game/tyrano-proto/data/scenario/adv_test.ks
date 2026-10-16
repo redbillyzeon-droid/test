@@ -30,7 +30,6 @@ AdvUI.setDate(mp.day, mp.slot, mp.weather, mp.next);
 
 [iscript]
 AdvUI.init({
-    theme: "A",
     speakers: {
         "コノハ":     { color: "#d9822b", tag: "#ffd9a8" },
         "ノクティア": { color: "#7a1e34", tag: "#f3c6cf" },

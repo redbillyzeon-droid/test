@@ -113,7 +113,7 @@
 | 売る場所 | DLsite と FANZA | 2026-10-07（利用者の判断） |
 | 成人向け場面の数 | 発売時12：段階5（5）、個別エンド（5）、真エンド（1）、NTR（1）。段階4は成人向けにしない | 2026-10-07（利用者の判断） |
 | 会話画面 | 2D で、見本の雰囲気に寄せる（大きな日付と時間帯、斜めの吹き出し型の会話の枠、左下の大きな顔の絵）。設計は `adv-ui.md`、モックは `outputs/adv_mock.png` | 2026-10-16（利用者の判断） |
-| フォント | おしゃれにする（利用者の希望）。SIL OFL の日本語フォントで3案（A：Dela Gothic One＋Zen Kaku Gothic New、B：RocknRoll One＋Zen Maru Gothic、C：Kaisei Decol＋Zen Kaku Gothic New）。どれにするかは回答待ち | 2026-10-16 |
+| フォント | おしゃれにする（利用者の希望）。SIL OFL の日本語フォントで3案（A：Dela Gothic One＋Zen Kaku Gothic New、B：RocknRoll One＋Zen Maru Gothic、C：Kaisei Decol＋Zen Kaku Gothic New）。**A に決定**。素材とライセンスの一覧は `credits.md` | 2026-10-16（利用者の判断） |
 | メインヒロイン | コノハ。発売時の NTR エンドも、メインヒロインのコノハにする | 2026-10-06（利用者の判断） |
 | NTRの対象 | 発売時はコノハ1つだけ。ほかの4人は、売れ行きを見てアップデートで追加する。アップデートまでは、コノハ以外の相棒で負けると鬱エンド | 2026-10-06（利用者の判断） |
 

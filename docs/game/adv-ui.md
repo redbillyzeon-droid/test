@@ -33,9 +33,10 @@
 | B | RocknRoll One | Zen Maru Gothic | 丸くて、やわらかい。ポップ |
 | C | Kaisei Decol | Zen Kaku Gothic New | 和風で上品。妖怪や吸血鬼の雰囲気に合う |
 
-- どれにするかは、**利用者の回答待ち**。
-- フォントの取り方：`python game/tools/fetch_fonts.py`（google/fonts リポジトリから、ライセンス文 OFL.txt と一緒に取ってくる）。
-- フォントのファイル（約18MB）は、採用が決まるまで Git の管理に入れない（`.gitignore`）。決まったら、使うものとライセンス文だけを管理に入れる。
+- **決定：A**（2026-10-16、利用者の判断）。B と C は使わない。
+- A の2書体（Dela Gothic One、Zen Kaku Gothic New の Medium と Bold）とライセンス文を、`game/tyrano-proto/data/others/adv_ui/fonts/` に入れて、Git の管理に入れた（約7MB）。
+- ファイルがなくなったときは、`python game/tools/fetch_fonts.py` で取り直せる。
+- 使っている素材の一覧は `credits.md`。
 - ゲームに同梱するときは、ライセンス文（OFL.txt）もゲームの中に入れる。
 
 ## 色と文字（案）
@@ -51,12 +52,12 @@
 
 ## 試作（2026-10-16）
 
-`game/tyrano-proto/` に作った。ティラノスクリプト Ver6.00 で動かし、自動テストが 15/15 合格した（`game/tyrano-proto/tools/check_adv.js`）。画面：`outputs/adv_in_engine.png`。
+`game/tyrano-proto/` に作った。ティラノスクリプト Ver6.00 で動かし、自動テストが合格した（フォントを A に決めたあとの版で 14/14）（`game/tyrano-proto/tools/check_adv.js`）。画面：`outputs/adv_in_engine.png`。
 
 | ファイル | 中身 |
 |---|---|
 | `data/others/adv_ui/adv_ui.js` | 日付の表示、顔の絵、名前の札の色、早送り・オート・ログのボタン |
-| `data/others/adv_ui/adv.css` | 見た目。フォントの組み合わせ A・B・C の切りかえもここ |
+| `data/others/adv_ui/adv.css` | 見た目とフォント（組み合わせ A） |
 | `data/scenario/adv_test.ks` | 動作確認用のシナリオ（昼にコノハ、夜にノクティア） |
 | `data/scenario/test_menu.ks` | 会話画面と戦闘画面のテストを選ぶメニュー |
 | `data/bgimage/proto_*.png`、`data/fgimage/chara/proto/*.png` | 仮の背景と立ち絵（`game/tools/make_placeholders.py` で作ったもの） |

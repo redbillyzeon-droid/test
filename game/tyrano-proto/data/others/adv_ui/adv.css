@@ -1,17 +1,13 @@
 /* adv_ui：会話画面（日常パート）の試作。座標は 1280×720 のゲーム画面が基準 */
 
-/* フォント（SIL Open Font License 1.1。fonts/ に OFL.txt がある。取り方は game/tools/fetch_fonts.py） */
+/* フォント：組み合わせ A に決定（2026-10-16）。どちらも SIL Open Font License 1.1。
+   ライセンス文は fonts/ の *-OFL.txt。ゲームに同梱するときは、ライセンス文も一緒に入れる */
 @font-face { font-family: "LI Dela"; src: url("fonts/DelaGothicOne-Regular.ttf"); font-display: swap; }
 @font-face { font-family: "LI ZenKaku"; src: url("fonts/ZenKakuGothicNew-Medium.ttf"); font-weight: 500; font-display: swap; }
 @font-face { font-family: "LI ZenKaku"; src: url("fonts/ZenKakuGothicNew-Bold.ttf"); font-weight: 700; font-display: swap; }
-@font-face { font-family: "LI Rock"; src: url("fonts/RocknRollOne-Regular.ttf"); font-display: swap; }
-@font-face { font-family: "LI ZenMaru"; src: url("fonts/ZenMaruGothic-Medium.ttf"); font-display: swap; }
-@font-face { font-family: "LI Decol"; src: url("fonts/KaiseiDecol-Bold.ttf"); font-display: swap; }
 
-/* フォントの組み合わせ（AdvUI.setTheme で切りかえる。既定は A） */
-:root, .li-theme-A { --li-head: "LI Dela", sans-serif; --li-body: "LI ZenKaku", sans-serif; }
-.li-theme-B { --li-head: "LI Rock", sans-serif; --li-body: "LI ZenMaru", sans-serif; }
-.li-theme-C { --li-head: "LI Decol", serif; --li-body: "LI ZenKaku", sans-serif; }
+/* 見出し（日付、名前の札、ボタン）と本文（会話の文） */
+:root { --li-head: "LI Dela", sans-serif; --li-body: "LI ZenKaku", sans-serif; }
 
 /* ---- 会話の枠（ティラノスクリプトの message0 を、斜めの吹き出しにする） ---- */
 .message0_fore .message_outer {
