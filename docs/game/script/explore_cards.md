@@ -250,7 +250,7 @@
 
 | 変数 | 中身 |
 |---|---|
-| `f.item_*` | 素材と食料の数（`fish`、`shell`、`wood`、`fruit`、`herb`、`water`、`clay`、`ore`、`mushroom`、`stone`、`scale` など） |
+| `f.item_*` | 素材と食料の数（`food`＝ごはん1回分の食料、`fish`、`shell`、`wood`、`fruit`、`herb`、`water`、`clay`、`ore`、`mushroom`、`stone`、`scale` など） |
 | `f.gift_*` | 好物（`rainbow_shell`、`red_fruit`、`white_flower`、`fried_tofu`＝油揚げ） |
 | `f.item_soy_seed` / `f.item_soy` | 大豆の種と大豆（油揚げの材料） |
 | `f.hp` | 体力 |
