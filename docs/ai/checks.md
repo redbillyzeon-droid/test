@@ -51,4 +51,5 @@ python -m pytest
 - [ ] ヒロインは全員、成人として描かれている。
 - [ ] 好感度などの数字を変えたときは、`docs/game/outline.md` も直した。
 - [ ] `.ks` ファイルは、PC のティラノビルダーで読み込んで動かすまで「ティラノビルダーでは未確認」と書く。
+- [ ] 会話画面の試作を変えたら、`node game/tyrano-proto/tools/check_adv.js <URL>` も実行する（フォントは先に `python game/tools/fetch_fonts.py` で取ってくる）。
 - [ ] 戦闘画面の試作（`game/tyrano-proto/`）を変えたら、ティラノスクリプト本体に重ねて `node game/tyrano-proto/tools/check_battle.js <URL>` を実行する（本体はリポジトリに入れない。利用規約で再配布が禁止されている）。

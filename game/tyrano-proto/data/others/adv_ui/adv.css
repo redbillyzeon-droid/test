@@ -1,0 +1,90 @@
+/* adv_ui：会話画面（日常パート）の試作。座標は 1280×720 のゲーム画面が基準 */
+
+/* フォント（SIL Open Font License 1.1。fonts/ に OFL.txt がある。取り方は game/tools/fetch_fonts.py） */
+@font-face { font-family: "LI Dela"; src: url("fonts/DelaGothicOne-Regular.ttf"); font-display: swap; }
+@font-face { font-family: "LI ZenKaku"; src: url("fonts/ZenKakuGothicNew-Medium.ttf"); font-weight: 500; font-display: swap; }
+@font-face { font-family: "LI ZenKaku"; src: url("fonts/ZenKakuGothicNew-Bold.ttf"); font-weight: 700; font-display: swap; }
+@font-face { font-family: "LI Rock"; src: url("fonts/RocknRollOne-Regular.ttf"); font-display: swap; }
+@font-face { font-family: "LI ZenMaru"; src: url("fonts/ZenMaruGothic-Medium.ttf"); font-display: swap; }
+@font-face { font-family: "LI Decol"; src: url("fonts/KaiseiDecol-Bold.ttf"); font-display: swap; }
+
+/* フォントの組み合わせ（AdvUI.setTheme で切りかえる。既定は A） */
+:root, .li-theme-A { --li-head: "LI Dela", sans-serif; --li-body: "LI ZenKaku", sans-serif; }
+.li-theme-B { --li-head: "LI Rock", sans-serif; --li-body: "LI ZenMaru", sans-serif; }
+.li-theme-C { --li-head: "LI Decol", serif; --li-body: "LI ZenKaku", sans-serif; }
+
+/* ---- 会話の枠（ティラノスクリプトの message0 を、斜めの吹き出しにする） ---- */
+.message0_fore .message_outer {
+  clip-path: polygon(3% 0, 100% 6%, 97% 100%, 0 92%);
+  box-shadow: none !important;
+}
+.message0_fore .message_inner,
+.message0_fore .message_inner * {
+  font-family: var(--li-body) !important;
+  font-weight: 500;
+  letter-spacing: .02em;
+}
+
+/* 名前の札（[ptext name="chara_name_area"] で作った要素） */
+.chara_name_area {
+  font-family: var(--li-head) !important;
+  background: #fff;
+  color: #111 !important;
+  padding: 2px 22px 4px !important;
+  border: 4px solid #111;
+  transform: rotate(-4deg);
+  transform-origin: left center;
+  white-space: nowrap;
+  width: auto !important;
+}
+.chara_name_area:empty { display: none; }
+
+/* ---- 画面の上に重ねる部品（AdvUI が作る） ---- */
+.li-hud { position: absolute; left: 0; top: 0; width: 1280px; height: 720px; pointer-events: none; z-index: 1000; }
+.li-hud * { box-sizing: border-box; }
+
+/* 上下の黒い帯 */
+.li-band { position: absolute; left: 0; right: 0; height: 22px; background: #111; }
+.li-band.top { top: 0; } .li-band.bottom { bottom: 0; }
+
+/* 左上：日付・天気・時間帯 */
+.li-date { position: absolute; left: 30px; top: 34px; display: flex; align-items: flex-end; gap: 10px; transform: rotate(-7deg); }
+.li-day { background: #fff; color: #111; font-family: var(--li-head); font-size: 64px; line-height: 1;
+  padding: 4px 16px 6px; border: 5px solid #111; box-shadow: 6px 6px 0 #111; }
+.li-day small { font-size: 26px; margin-left: 4px; }
+.li-side { display: flex; flex-direction: column; gap: 6px; }
+.li-weather { background: #111; color: #f0c43a; font-family: var(--li-head); font-size: 24px; padding: 0 10px; width: max-content; }
+.li-slot { color: #fff; font-family: var(--li-head); font-size: 30px; padding: 0 16px; border: 4px solid #111; transform: rotate(4deg); }
+.li-slot.morning { background: #3aa6d8; }
+.li-slot.noon { background: #e8502a; }
+.li-slot.night { background: #2b3a78; }
+
+/* 右上：残り日数と次にやること */
+.li-hint { position: absolute; right: 24px; top: 34px; text-align: right; }
+.li-left { display: inline-block; background: #111; color: #fff; font-family: var(--li-head); padding: 4px 14px; font-size: 20px; transform: skewX(-12deg); }
+.li-left b { color: #f0c43a; font-size: 26px; font-weight: normal; }
+.li-next { margin-top: 8px; background: rgba(255,255,255,.92); color: #111; padding: 6px 12px; font-family: var(--li-body); font-size: 15px;
+  border-left: 6px solid #e8502a; display: inline-block; }
+.li-next:empty { display: none; }
+
+/* 左下：顔の絵（バストアップ） */
+.li-bust { position: absolute; left: 20px; bottom: 22px; width: 330px; height: 360px; display: none;
+  clip-path: polygon(0 12%, 100% 0, 92% 100%, 0 100%); background: #888 center top / cover no-repeat;
+  animation: li-bust-in .25s ease-out; }
+.li-bust.show { display: block; }
+.li-bust .li-bust-label { position: absolute; left: 0; right: 0; top: 46%; text-align: center; color: rgba(255,255,255,.9);
+  font-family: var(--li-head); font-size: 22px; }
+.li-bust::after { content: ""; position: absolute; inset: 0; border: 6px solid #111; clip-path: inherit; }
+@keyframes li-bust-in { from { transform: translateX(-30px); opacity: 0; } to { transform: none; opacity: 1; } }
+
+/* 会話の枠の「しっぽ」（顔の絵が出ているときだけ） */
+.li-tail { position: absolute; left: 252px; top: 556px; width: 60px; height: 40px; background: #111; display: none;
+  clip-path: polygon(100% 0, 0 60%, 100% 100%); }
+.li-tail.show { display: block; }
+
+/* 右下：操作の案内（押すとティラノスクリプトの機能を呼ぶ） */
+.li-ops-layer { position: absolute; left: 0; top: 0; width: 1280px; height: 720px; pointer-events: none; z-index: 10000; }
+.li-ops { position: absolute; right: 18px; bottom: 30px; display: flex; flex-direction: column; gap: 6px; pointer-events: auto; }
+.li-ops div { background: #fff; color: #111; font-family: var(--li-head); font-size: 14px; padding: 3px 10px; border: 3px solid #111;
+  transform: skewX(-10deg); text-align: center; cursor: pointer; }
+.li-ops div.on { background: #f0c43a; }

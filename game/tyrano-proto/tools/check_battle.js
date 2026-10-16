@@ -21,6 +21,10 @@ async function openBattle(browser, errors) {
     page.on("pageerror", (e) => errors.push("pageerror: " + e.message));
     page.on("console", (m) => { if (m.type() === "error") errors.push("console: " + m.text()); });
     await page.goto(url);
+    // 試作の確認メニューから、戦闘画面のテストを選ぶ
+    await page.waitForSelector(".glink_button", { timeout: 20000 });
+    await page.waitForTimeout(1500); // ボタンが出そろって、押せるようになるまで待つ
+    await page.click("text=戦闘画面のテスト");
     for (let i = 0; i < 30; i++) {
         if (await page.$(".ib-root")) break;
         await page.mouse.click(640, 600);
