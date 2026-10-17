@@ -15,6 +15,7 @@ AI のエージェントは、役割ごとに分けて使う。Claude Code で�
 | プログラム担当 | `game-programmer` | `game/` | 読む・書く・コマンド（テストの実行など） |
 | 確認役 | `project-reviewer` | なし（読むだけ） | 読むだけ |
 
+- 成人向けの場面は、すべて同意のもとで行われる設定（`.claude/rules/game-adult-content.md`）。どの担当も、この決まりに従う。
 - 設定の正本（`docs/game/plan.md`、`characters.md`、`outline.md`）を直すのは、プロデューサー。担当は、直したほうがよい点を提案する。
 - commit と push、公開、外部への送信、ファイルの削除と移動は、プロデューサーだけが行う（利用者の承認の範囲で）。
 
