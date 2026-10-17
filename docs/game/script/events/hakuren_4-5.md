@@ -116,5 +116,6 @@
 |---|---|
 | `f.aff_hakuren` | 段階4：+8 または +6 |
 | `f.ev_hakuren` | 4、5 |
+| `f.mind` | 段階4で +1、段階5で +1（心。`../../design/battle.md` 1-1） |
 | `f.hakuren_called_name` | 段階4で 1（以後、「ユウ」と呼ぶ。くだけた場面では「お前」） |
 | `f.hakuren_resolve` | 段階5で 1 |

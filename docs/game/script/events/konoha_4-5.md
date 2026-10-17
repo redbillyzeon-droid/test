@@ -128,6 +128,7 @@
 |---|---|
 | `f.aff_konoha` | 段階4：+8 または +6 |
 | `f.ev_konoha` | 4、5 |
+| `f.mind` | 段階4で +1、段階5で +1（心。`../../design/battle.md` 1-1） |
 | `f.konoha_tails` | 段階4で 4、段階5で 5 |
 | `f.konoha_resolve` | 段階5で 1 |
 | `f.gave_fried_tofu` | 「コノハと過ごす」で好物の油揚げ（`f.gift_fried_tofu`）を渡すと 1。渡したときの決まりは `../../system.md` の「好感度」に追記した |
