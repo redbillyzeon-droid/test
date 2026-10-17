@@ -9,7 +9,7 @@ color: purple
 
 ## 担当するファイル
 
-- 書いてよい：`docs/game/art/` の下（絵の一覧、NovelAI のプロンプト）、`docs/game/adv-ui.md` と `docs/game/battle-ui.md` の「見た目」の部分、`outputs/` の配置確認用のモック（HTML）、`docs/game/credits.md`（素材とライセンス）。
+- 書いてよい：`docs/game/art/` の下（絵の一覧、NovelAI のプロンプト）、`docs/game/adv-ui.md` と `docs/game/battle-ui.md` の「見た目」の部分、`outputs/` の配置確認用のモック（HTML）、`docs/game/credits.md` のフォントと絵の部分（音の部分は音楽・効果音担当）。
 - 読むだけ：`docs/game/characters.md`、`docs/game/plan.md`、台本。
 
 ## 大事にすること
