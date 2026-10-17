@@ -1,6 +1,6 @@
 # NovelAI 用のプロンプト（キャラクターの基本と立ち絵）
 
-作成：2026-10-06　／　更新：2026-10-17（キャラクターごとの服装・表情差分・ネガティブ、生成の手順を追加）
+作成：2026-10-06　／　更新：2026-10-17（キャラクターごとの服装・表情差分・ネガティブ、生成の手順を追加。9章に画面用の背景を追加）
 状態：案。まだ一枚も生成していない。実際に生成して見た目を確かめてから直す。
 
 - キャラクターの見た目は `../characters.md` に合わせている。characters.md に書かれていない細かい指定（目の色、髪の長さ、服の色など）は、この文書で決めた**案**で、「（案）」と書いて区別する。
@@ -383,3 +383,39 @@ Seed の数字に意味はない（あとで探しやすいように、キャラ
 大きさや枚数、参照画像の機能によって、NovelAI の Anlas（有料のポイント）を使う場合がある。どの設定なら追加の費用がかからないかは、利用者の契約プランと NovelAI の資料で**要確認**。
 
 NovelAI の生成画像を商用で使えるか、DLsite・FANZA で AI で作った絵をどう扱うかも**要確認**（`asset-list.md`）。
+
+## 9. 画面用の背景（2026-10-17 追加、案）
+
+`menu-ui.md` の探索マップとタイトル画面に使う。人物は描かないので、`adult` のタグは入れない（`no humans`）。ネガティブは共通のものに、下の表の分を足す。大きさは 8章の背景と同じ 1216×832（あとで 1280×720 に切り抜く）。
+
+### 9-1. 島の全体図（探索マップ）
+
+ファイル名：`ui_island_map`。Seed の案：90001, 90002, 90003, 90004。
+
+```
+scenery, no humans, illustrated map, fantasy map, bird's-eye view, from above, a single small tropical island surrounded by calm blue sea, white sand beach on the south shore, dense green jungle in the center, a river flowing from the center to the east coast, grey rocky area on the east side, dark cliffs with a cave entrance on the west side, a tall mountain peak in the north, a small rocky cape on the south coast, a wrecked wooden ship in shallow water off the southern cape, hand-painted, watercolor, soft colors, morning light, masterpiece, best quality, very aesthetic, absurdres
+```
+
+ネガティブに足す：`text, letters, words, labels, numbers, compass rose, grid, legend, frame, border, people, character, buildings, city, multiple islands, modern ship`
+
+- 島が画面の中央に入り、上下に海が少し残る構図を選ぶ（1280×720 に切り抜くと、上下が約 80px ずつ切れるため）。
+- エリアの位置（北に山頂、西に洞窟、南に浜辺、南の岬の沖に沈没船など）は、`menu-ui.md` 4章の札の位置に合わせたい。NovelAI で方角どおりに描けるかは**要確認**。外れたら、札の位置を絵に合わせて直す（絵を優先）。
+- 2026-10-17 直し：沈没船を「南東の沖」から「南の岬の沖」にした（8日目の木の札「南の岬に、船がある」に合わせる）。
+- 地図に文字が描かれやすい。文字が入ったものは使わない（6章の手順2の基準8）。
+- 夜は画面の膜（紺 45%）で暗くするので、夜の版は作らない。
+
+### 9-2. タイトル画面の背景
+
+ファイル名：`ui_title`。Seed の案：91001, 91002, 91003, 91004。
+
+```
+scenery, no humans, tropical island beach at dawn, view from the shore, a black stone monolith standing on the sand, faint glowing blue letters on the monolith, dark navy sky turning orange at the horizon, calm waves, footprints in the sand, driftwood, quiet, melancholic, hopeful, wide shot, anime coloring, soft lighting, masterpiece, best quality, very aesthetic, absurdres
+```
+
+ネガティブに足す：`text, logo, title, watermark, people, character, silhouette, ship, buildings, bright daylight`
+
+- 左上にロゴ（文字で作る。x 60〜680、y 80〜280）、右側にボタン（x 900〜1220、y 300〜522）が乗るので、石碑は画面の中央からやや下（1280×720 で x 560〜860、y 330〜700 の目安）に来る構図を選ぶ（`menu-ui.md` 6-2）。右寄りの石碑はボタンに隠れるので使わない。少しずれている絵は、1280×720 に切り抜く位置を左右にずらして合わせる。
+- 2026-10-17 直し：前は「中央からやや右下」と書いていたが、ボタンの列に隠れるので直した。
+- 石碑の「光る文字」は模様に見えればよい。読める文字（英語や日本語）になったものは使わない。
+- 夜明け（暗い紺からオレンジ）は、「失ったあとに、また朝が来る」の意味で選んだ案。
+
