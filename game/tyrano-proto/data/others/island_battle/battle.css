@@ -67,3 +67,12 @@
 
 .ib-log { position: absolute; left: 480px; right: 40px; bottom: 40px; min-height: 28px; padding: 10px 16px;
   background: rgba(0,0,0,.55); color: #f4f0e6; font-size: 18px; border-left: 4px solid #f0a52a; }
+
+/* 2026-10-17 追加：道具の残り、使えないコマンド、味方が多いとき（全員で挑む決戦） */
+.ib-iteminfo { font-size: 12px; padding: 6px 14px 0; color: #6b5e4b; font-family: sans-serif; }
+.ib-item.ib-disabled .ib-ico { opacity: .4; }
+.ib-party.ib-party-many { gap: 6px; }
+.ib-party.ib-party-many .ib-card { width: 160px; transform-origin: left bottom; }
+.ib-party.ib-party-many .ib-card .ib-photo { width: 92px; height: 140px; }
+.ib-party.ib-party-many .ib-card .ib-stats { left: 82px; width: 76px; }
+.ib-party.ib-party-many ~ .ib-log { bottom: 210px; }
