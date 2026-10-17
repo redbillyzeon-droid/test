@@ -35,7 +35,9 @@ push、公開、削除、外部への送信は、AGENTS.md のとおり毎回確
 ## 3. 残りの作業（重要な順）
 
 1. **試作の戦闘プログラムを仕上げる**（`game/tyrano-proto/`）
-   - commit `a38ea26` は、プログラム担当の**作業途中**のスナップショット。テストが全部通るかは確かめていない。
+   - 2026-10-17 追記：プログラム担当の作業は終わった（最終版は commit `a38ea26` と同じ内容）。クラウドで `check_battle.js` 56/56、`check_adv.js` 14/14（担当の実行）、`test_nai_generate.py` 12/12 に合格。残りは、ティラノビルダーで動くかの確認と、下の解釈の確認。
+   - 担当の解釈で、`battle.md` と照らして確かめたい点：道具は試作の仮の規則で自動に選ぶ／カバネの大技は直後の敵の番に効く／ハクレンの大技は主人公が倒れていると連携攻撃になる／全員で挑むときの幻影は好感度が低い2人の分。報酬の変数名 `item_ore`・`item_stone`・`item_scale`・`gift_white_flower` は推測。
+   - `f.dev`、`f.final_retry_used`、`f.built_*` を `system.md` の変数表に足す。
    - 頼んであった内容：`docs/game/design/battle.md` 7章（設定の項目、計算の変更、決戦の割り込み、書き戻し、自動戦闘の判断）。加えて次の決定：
      - 全員倒れたら `f.battle_result = "wipe"` で .ks に戻り、「もう一度」と「タイトルに戻る」は .ks で分ける。
      - 島の発展度の変数名は `f.dev`。
@@ -44,7 +46,7 @@ push、公開、削除、外部への送信は、AGENTS.md のとおり毎回確
    - 確かめ方：ティラノスクリプト本体のフォルダに `game/tyrano-proto/data/` の中身をコピーし、`python -m http.server 8799` で公開して、`node game/tyrano-proto/tools/check_battle.js http://localhost:8799/index.html` と `check_adv.js` を実行する（Node.js と Playwright が要る。導入は利用者の承認を得てから）。
    - **2026-10-17 ローカルで実行：`check_adv.js` 14/14、`check_battle.js` 56/56 合格**（ティラノビルダー v3.05a のひな形のエンジン。`first.ks` の `tyrano.ks` を `system/tyrano.ks` に直した。くわしくは `tasks/handoff.md`）。
    - 通ったら、`docs/game/handoff-local-engine-check.md` の手順で、ティラノビルダーで動くかも確かめる（エンジンを決めるための作業）。
-2. **`game/tools/nai_generate.py` を直す**（頼んであったが、まだ確かめていない）：男性キャラ（主人公ユウ、GM など）のネガティブから `flat chest` を外す。V4.5 で V5 の絵を参照する引数を足す（API の項目名は要確認。既定は dry run のまま）。
+2. **`game/tools/nai_generate.py`**：済み（2026-10-17、テスト 12/12）。参照画像の API の項目名は要確認（`REFERENCE_KEYS`）。元の依頼：男性キャラ（主人公ユウ、GM など）のネガティブから `flat chest` を外す。V4.5 で V5 の絵を参照する引数を足す（API の項目名は要確認。既定は dry run のまま）。
 3. **確認役のレビュー**：今日の変更（`design/battle.md`、`design/affection.md`、`system.md`、`battle-ui.md`、`script/`、`game/`）を `project-reviewer` に見てもらい、指摘を直す。
 4. **区切りの評価**：試作が動く版になったら、評価役 `game-director-review` に全体を評価してもらう（本人の意見ではない物差し）。
 5. **台本を .ks にする**：エンジンが決まってから。好感度のしくみは `docs/game/design/affection.md` 6-2 に、プログラムに頼むことがまとまっている。
