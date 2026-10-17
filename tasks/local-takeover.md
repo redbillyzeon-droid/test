@@ -47,7 +47,7 @@ push、公開、削除、外部への送信は、AGENTS.md のとおり毎回確
    - **2026-10-17 ローカルで実行：`check_adv.js` 14/14、`check_battle.js` 56/56 合格**（ティラノビルダー v3.05a のひな形のエンジン。`first.ks` の `tyrano.ks` を `system/tyrano.ks` に直した。くわしくは `tasks/handoff.md`）。
    - 通ったら、`docs/game/handoff-local-engine-check.md` の手順で、ティラノビルダーで動くかも確かめる（エンジンを決めるための作業）。
 2. **`game/tools/nai_generate.py`**：済み（2026-10-17、テスト 12/12）。参照画像の API の項目名は要確認（`REFERENCE_KEYS`）。元の依頼：男性キャラ（主人公ユウ、GM など）のネガティブから `flat chest` を外す。V4.5 で V5 の絵を参照する引数を足す（API の項目名は要確認。既定は dry run のまま）。
-3. **確認役のレビュー**：今日の変更（`design/battle.md`、`design/affection.md`、`system.md`、`battle-ui.md`、`script/`、`game/`）を `project-reviewer` に見てもらい、指摘を直す。
+3. **確認役のレビュー**（2026-10-17 済み。結果は `tasks/handoff.md`）：今日の変更（`design/battle.md`、`design/affection.md`、`system.md`、`battle-ui.md`、`script/`、`game/`）を `project-reviewer` に見てもらい、指摘を直す。
 4. **区切りの評価**：試作が動く版になったら、評価役 `game-director-review` に全体を評価してもらう（本人の意見ではない物差し）。
 5. **台本を .ks にする**：エンジンが決まってから。好感度のしくみは `docs/game/design/affection.md` 6-2 に、プログラムに頼むことがまとまっている。
 

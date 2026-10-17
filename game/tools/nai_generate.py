@@ -152,7 +152,7 @@ def check_prompt(prompt: str) -> None:
     tags = {t.strip().lower() for t in prompt.split(",") if t.strip()}
     if "no humans" in tags:
         return
-    person_tags = {"1girl", "2girls", "3girls", "multiple girls", "1boy", "2boys", "multiple boys", "1other"}
+    person_tags = FEMALE_TAGS | MALE_TAGS | {"1other"}
     has_person = bool(tags & person_tags)
     if has_person and not all(t in tags for t in REQUIRED_ADULT_TAGS):
         sys.exit("中止：人物のプロンプトに 'adult' がありません（全員を成人の見た目で描く決まり）")

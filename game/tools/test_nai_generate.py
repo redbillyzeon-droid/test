@@ -86,6 +86,15 @@ class NegativeTest(unittest.TestCase):
         self.assertIsInstance(code, str)
         self.assertIn("adult", code)
 
+    def test_check_prompt_three_people_needs_adult(self):
+        # 3girls・3boys も人物として扱い、adult がなければ止める（既存の 1girl・1other も落とさない）
+        for head in ("3girls", "3boys", "1girl", "multiple boys", "1other"):
+            with self.subTest(head=head):
+                with self.assertRaises(SystemExit) as cm:
+                    nai.check_prompt(f"{head}, fox ears")
+                self.assertIn("adult", str(cm.exception.code))
+                nai.check_prompt(f"{head}, adult, fox ears")  # adult があれば止めない
+
 
 class ReferenceTest(unittest.TestCase):
     def setUp(self):

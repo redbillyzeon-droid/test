@@ -288,6 +288,9 @@ async function checkFinal(browser, errors, check) {
     });
     check("決戦：絆ゲージ5、敵は GM と幻影2体、GM 400", s0.gems === 5 && s0.enemies.length === 3 && s0.gm === 400 && s0.enemies[1].includes("GM"), JSON.stringify(s0));
     check("決戦：施設の支え（かまど HP+10、家 心+10、見張り台 守り+2、作業台 道具4回）、発展度は f.dev", s0.hp === 130 && s0.mind === 45 && s0.def === 4 && s0.limit === 4 && s0.dev === 4, JSON.stringify(s0));
+    // 前半の終わりの心が乱数で 0 になると、後半の選択肢が1つになり、下の確認が通れない。
+    // 主人公の心を大きくして、乱数に左右されないようにする（心が 0 のときは checkFinalWipe で確かめる）
+    await page.evaluate(() => { const h = IslandBattle.current.party[0]; h.mind = h.maxMind = 999; });
     await fast(page);
     await page.click(".ib-auto");
     check("決戦の前半：自動戦闘で割り込みまで進む", await waitGone(page));
@@ -310,9 +313,13 @@ async function checkFinal(browser, errors, check) {
 
     await advanceUntil(page, hasGlinks(page));
     const late = await glinks(page);
-    const expect = it.zero === 1 ? 1 : 3;
-    check("後半：判定値3以上なら選択肢3つ（手がかりあり）", late.length === expect, JSON.stringify({ zero: it.zero, late }));
-    if (late.length === 3) {
+    check("後半：判定値3以上なら選択肢3つ（手がかりあり）", it.zero === 0 && late.length === 3, JSON.stringify({ zero: it.zero, late }));
+    if (late.length !== 3) {
+        // 黙って飛ばすと総数が変わるので、飛ばしたことを NG で残す
+        ["後半：手がかりの選択肢で絆ゲージ +2", "決着：前半の終わりの状態（絆を足したもの）から再開する",
+            "決着：絆の大技でとどめを刺して勝つ（支配の力 0）", "決着：勝つと勝ちの場面に進む"]
+            .forEach((n) => check(n, false, "飛ばした（後半の選択肢が3つでない）"));
+    } else {
         await clickGlink(page, "勝てなかった");
         await waitFor(msgHas(page, "絆ゲージ +2"));
         const bond2 = await page.evaluate(() => TYRANO.kag.stat.f.battle_state.bond);
@@ -332,6 +339,159 @@ async function checkFinal(browser, errors, check) {
         check("決着：絆の大技でとどめを刺して勝つ（支配の力 0）", fin.res === "win" && fin.last.finisher && fin.last.bossHp === 0, JSON.stringify({ res: fin.res, f: fin.last.finisher, hp: fin.last.bossHp }));
         check("決着：勝つと勝ちの場面に進む", await advanceUntil(page, msgHas(page, "選べなかった")));
     }
+    await page.close();
+}
+
+// ---- 確認役のレビューで直したところ（battle.md 3-3、3-4、4-1、4-2、5-1） ---------------------
+async function checkFixes(browser, errors, check) {
+    const page = await openBattle(browser, errors, "探索の戦闘");
+    const r = await page.evaluate(async () => {
+        const IB = IslandBattle;
+        const sleep = (ms) => new Promise((res) => setTimeout(res, ms));
+        const waitTurn = async (b, n) => { for (let i = 0; i < 300 && !(b.turn >= n && !b.busy) && !b.finished; i++) await sleep(10); };
+        const lost = (b) => b.party.reduce((s, p) => s + (p.maxHp - p.hp), 0);
+        IB.current.destroy();
+        const out = {};
+        const f = TYRANO.kag.stat.f;
+        const saveF = JSON.parse(JSON.stringify(f));
+        const rnd = Math.random;
+        Math.random = () => 0.5;
+        const hero = () => ({ name: "ユウ", hp: 1000, mind: 50, atk: 5, def: 0 });
+        const rock = (pattern) => ({ name: "岩", hp: 99999, atk: 20, def: 0, pattern: pattern || [{}] });
+        const noctia = () => ({ id: "noctia", name: "ノクティア", hp: 1000, mind: 50, atk: 5, def: 0, stage: 1, skill: { name: "夜の帳", type: "nullify" } });
+        try {
+            // 1. 本当の姿：使ったターンの敵の番には効かず、次のターンに半分（20 → 10）、その次は戻る
+            let b = IB.start({ mode: "explore", party: [hero(),
+                { id: "kabane", name: "カバネ", hp: 1000, mind: 50, atk: 5, def: 0, stage: 4, skill: { name: "骨の盾", type: "wall" }, ult: { name: "本当の姿", type: "all", power: 1, wall: true } },
+                noctia()], enemies: [rock()], autoDelay: 10, endDelay: 10 });
+            const kb = b.party[1], nc = b.party[2];
+            b.warned = true;
+            out.guard1 = [b.autoChoice(nc), b.autoChoice(kb)];
+            b.warned = false;
+            b.bond = b.bondMax;
+            b.command("attack"); b.command("bond"); b.command("attack");
+            await waitTurn(b, 2);
+            out.wallT1 = lost(b);
+            b.warned = true;
+            out.guard2 = [b.autoChoice(nc), b.autoChoice(kb)];
+            b.warned = false;
+            b.command("attack"); b.command("attack"); b.command("attack");
+            await waitTurn(b, 3);
+            out.wallT2 = lost(b) - out.wallT1;
+            b.command("attack"); b.command("attack"); b.command("attack");
+            await waitTurn(b, 4);
+            out.wallT3 = lost(b) - out.wallT1 - out.wallT2;
+            b.destroy();
+
+            // 2. 白虎の牙：主人公が倒れていると使えない（段階1〜3の連携攻撃は使える）
+            const hk = (stage) => ({ id: "hakuren", name: "ハクレン", hp: 1000, mind: 50, atk: 5, def: 0, stage,
+                skill: { name: "西方の守り", type: "cover" }, ult: { name: "白虎の牙", type: "single", power: 150, needHero: true } });
+            b = IB.start({ mode: "explore", party: [hero(), hk(4)], enemies: [rock()], autoDelay: 10 });
+            b.bond = b.bondMax;
+            out.hkAlive = b.canUse("bond", b.party[1]);
+            b.party[0].hp = 0;
+            out.hkDead = b.canUse("bond", b.party[1]);
+            out.hkDeadAuto = b.autoChoice(b.party[1]);
+            b.destroy();
+            b = IB.start({ mode: "explore", party: [hero(), hk(2)], enemies: [rock()], autoDelay: 10 });
+            b.bond = b.bondMax;
+            b.party[0].hp = 0;
+            out.hkComboDead = b.canUse("bond", b.party[1]);
+            b.destroy();
+            // 決着（ハクレンだけ）：主人公が倒れていれば、とどめの絆も使えない
+            f.ev_hakuren = 4;
+            b = IB.start({ mode: "final", phase: "finish", partner: "hakuren", resumeState: { bond: 5, bondMax: 5, bossHp: 200, bossMaxHp: 400, party: [] }, autoDelay: 10, endDelay: 10 });
+            b.party[0].hp = 0;
+            out.hkFinishSolo = b.canUse("bond", b.party[1]);
+            b.destroy();
+            // 決着（全員）：主人公が倒れていると、ハクレンを飛ばして4人の大技が順に出る。ハクレンの番でも絆を使える
+            b = IB.start({ mode: "final", phase: "finish", partner: "all", resumeState: { bond: 5, bondMax: 5, bossHp: 400, bossMaxHp: 800, party: [] }, autoDelay: 10, endDelay: 10 });
+            b.party[0].hp = 0;
+            b.turnIndex = b.party.findIndex((p) => p.id === "hakuren");
+            out.hkAllCan = b.canUse("bond", b.party[b.turnIndex]);
+            b.command("bond");
+            await sleep(400);
+            out.hkAll = { res: IB.last.result, finisher: IB.last.finisher, order: IB.last.finisherOrder, hp: IB.last.bossHp,
+                fang: IB.last.history.some((t) => t.includes("白虎の牙")) };
+            delete f.ev_hakuren;
+
+            // 3. 夜の帳：囁き（心を減らす行動）では使わず、次の攻撃を打ち消す
+            b = IB.start({ mode: "explore", party: [hero(), noctia()],
+                enemies: [rock([{ name: "囁き", type: "mind", power: 5, target: "hero" }, {}])], autoDelay: 10 });
+            b.command("attack"); b.command("skill");
+            await waitTurn(b, 2);
+            out.nullAfterWhisper = { nullify: b.nullify, mind: b.party[0].mind, lost: lost(b) };
+            b.command("attack"); b.command("attack");
+            await waitTurn(b, 3);
+            out.nullAfterAttack = { nullify: b.nullify, lost: lost(b), log: b.history.some((t) => t.includes("夜の帳が打ち消した")) };
+            b.destroy();
+
+            // 8. 夜の帳：2人の決戦で、予告のターンは幻影の攻撃ではなく支配の波を打ち消す
+            b = IB.start({ mode: "final", phase: "first", partner: "noctia", items: { herb: 0, medicine: 0 }, autoDelay: 10, endDelay: 10 });
+            b.boss().acts = 2; // 次の GM の行動は支配の波（予告あり）
+            b.warned = true;
+            b.command("attack"); b.command("skill");
+            await waitTurn(b, 2);
+            const hs = b.history;
+            out.nullWave = { nullify: b.nullify, wave: b.waveCount, lost: lost(b),
+                waveNull: hs.some((t) => t.includes("支配の波！ ……しかし、夜の帳が打ち消した")),
+                illusionHit: hs.filter((t) => t.includes("ルカの影") && t.includes("ダメージ（")).length };
+            b.destroy();
+
+            // 4. 主人公の番の絆：倒れた相棒しかいなければ使えない
+            b = IB.start({ mode: "explore", party: [hero(), { name: "相棒", hp: 100, mind: 50, atk: 5, stage: 1 }], enemies: [rock()], autoDelay: 10 });
+            b.bond = b.bondMax;
+            out.bondAlive = b.canUse("bond", b.party[0]);
+            b.party[1].hp = 0;
+            out.bondDead = b.canUse("bond", b.party[0]);
+            b.command("bond");
+            out.bondDeadKept = b.bond === b.bondMax;
+            b.destroy();
+
+            // 5. 決戦の前半：一撃で支配の力が 0 になっても割り込む（決着は 1 から）
+            b = IB.start({ mode: "final", phase: "first", partner: "", party: [{ name: "ユウ", hp: 100, mind: 50, atk: 9999, def: 0 }],
+                enemies: [{ name: "幻影", hp: 50, atk: 1, def: 0 }, { name: "GM", hp: 400, atk: 1, def: 0, boss: true }, { name: "幻影", hp: 50, atk: 1, def: 0 }],
+                items: { herb: 0, medicine: 0 }, autoDelay: 10, endDelay: 10 });
+            b.target = function () { return this.boss(); };
+            b.command("attack");
+            await sleep(200);
+            out.oneShot = { res: IB.last && IB.last.result, hp: IB.last && IB.last.bossHp, st: f.battle_state && f.battle_state.bossHp };
+
+            // 6. 囁き：主人公が倒れていれば空振り（相棒の心は減らない）
+            b = IB.start({ mode: "explore", party: [hero(), { name: "相棒", hp: 100, mind: 50, atk: 5, stage: 1 }],
+                enemies: [rock([{ name: "囁き", type: "mind", power: 15, target: "hero" }])], autoDelay: 10 });
+            b.party[0].hp = 0;
+            b.turnIndex = 1;
+            b.command("attack");
+            await waitTurn(b, 2);
+            out.whisperMiss = { mind: b.party[1].mind, log: b.history.filter((t) => t.includes("囁き"))[0] || "" };
+            b.destroy();
+        } finally {
+            Math.random = rnd;
+            Object.keys(f).forEach((k) => { if (!(k in saveF)) delete f[k]; });
+            Object.assign(f, saveF);
+        }
+        return out;
+    });
+    check("本当の姿：使ったターンの敵の番には半減しない（20）", r.wallT1 === 20, String(r.wallT1));
+    check("本当の姿：次のターンに味方の受けるダメージ半分（10）", r.wallT2 === 10, String(r.wallT2));
+    check("本当の姿：その次のターンは元に戻る（20）", r.wallT3 === 20, String(r.wallT3));
+    check("自動：本当の姿が効くターンは骨の盾を重ねず、ほかの相棒が守りの技",
+        (r.guard1 || []).join() === "attack,skill" && (r.guard2 || []).join() === "skill,attack", JSON.stringify([r.guard1, r.guard2]));
+    check("白虎の牙：主人公が倒れていると絆を使えない（自動も選ばない）", r.hkAlive === true && r.hkDead === false && r.hkDeadAuto !== "bond", JSON.stringify([r.hkAlive, r.hkDead, r.hkDeadAuto]));
+    check("白虎の牙：段階1〜3の連携攻撃は、主人公が倒れていても使える", r.hkComboDead === true, String(r.hkComboDead));
+    check("決着（ハクレンだけ）：主人公が倒れているとき、とどめの絆を使えない", r.hkFinishSolo === false, String(r.hkFinishSolo));
+    const ha = r.hkAll || {};
+    check("決着（全員）：主人公が倒れていると、ハクレンを飛ばして4人の大技で 0",
+        r.hkAllCan === true && ha.res === "win" && ha.finisher && ha.hp === 0 && !ha.fang && (ha.order || []).join() === "noctia,konoha,kabane,ignia", JSON.stringify({ can: r.hkAllCan, ha }));
+    check("夜の帳：囁きでは消費しない", r.nullAfterWhisper.nullify === 1 && r.nullAfterWhisper.mind === 45 && r.nullAfterWhisper.lost === 0, JSON.stringify(r.nullAfterWhisper));
+    check("夜の帳：次の攻撃を打ち消す", r.nullAfterAttack.nullify === 0 && r.nullAfterAttack.lost === 0 && r.nullAfterAttack.log, JSON.stringify(r.nullAfterAttack));
+    const nw = r.nullWave || {};
+    check("夜の帳：2人の決戦で、予告のターンは幻影の攻撃ではなく支配の波を打ち消す",
+        nw.nullify === 0 && nw.waveNull && nw.wave === 0 && nw.illusionHit === 2 && nw.lost > 0, JSON.stringify(nw));
+    check("主人公の番の絆：倒れた相棒しかいなければ使えない", r.bondAlive === true && r.bondDead === false && r.bondDeadKept, JSON.stringify([r.bondAlive, r.bondDead, r.bondDeadKept]));
+    check("決戦の前半：一撃で 0 にしても割り込む（決着は支配の力 1 から）", (r.oneShot || {}).res === "interrupt" && r.oneShot.hp === 1 && r.oneShot.st === 1, JSON.stringify(r.oneShot));
+    check("囁き：主人公が倒れていれば空振り（相棒の心は減らない）", r.whisperMiss.mind === 50 && r.whisperMiss.log.includes("届かなかった"), JSON.stringify(r.whisperMiss));
     await page.close();
 }
 
@@ -480,7 +640,7 @@ async function checkFinalWipe(browser, errors, check) {
     await page.close();
 
     // 1つの組が例外で止まっても、ほかの組は続けて結果を出す
-    for (const [name, fn] of [["計算と自動戦闘", checkCalc], ["探索の1戦", checkExplore], ["決戦の流れ", checkFinal], ["全員倒れたとき", checkFinalWipe]]) {
+    for (const [name, fn] of [["計算と自動戦闘", checkCalc], ["探索の1戦", checkExplore], ["レビューの修正", checkFixes], ["決戦の流れ", checkFinal], ["全員倒れたとき", checkFinalWipe]]) {
         try {
             await fn(browser, errors, check);
         } catch (e) {

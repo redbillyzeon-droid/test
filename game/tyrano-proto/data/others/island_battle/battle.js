@@ -376,7 +376,9 @@
         this.auto = false;
         this.finished = false;
         this.nullify = 0;
-        this.wall = 0;
+        this.wall = 0;      // 骨の盾（そのターン）
+        this.ultWall = 0;   // 本当の姿：いまのターンに効いている
+        this.ultWallNext = 0; // 本当の姿：次のターンに効かせる
         this.cover = null;
         this.warned = false;
         this.history = [];
@@ -653,12 +655,21 @@
     // ---- コマンド ---------------------------------------------------------------------
     Battle.prototype.bondUsers = function (actor) {
         // 決着で全員で挑むとき：どの番でも「絆」1回で、相棒全員の大技を順に出す（7-3、5-5）
-        if (this.finisher && this.partnerId === "all") return this.party.filter(function (p) { return !p.hero; });
-        var partners = this.party.filter(function (p) { return !p.hero && p.stage >= 1; });
-        if (!actor.hero) return actor.stage >= 1 ? [actor] : [];
-        var alive = partners.filter(function (p) { return p.hp > 0; });
+        // 主人公が倒れていると使えない大技（白虎の牙）の相棒は除く（3-4）。全員のときは、その1人を飛ばして続ける
+        var self = this;
+        if (this.finisher && this.partnerId === "all") return this.party.filter(function (p) { return !p.hero && !self.ultBlocked(p); });
+        if (!actor.hero) return actor.stage >= 1 && !this.ultBlocked(actor) ? [actor] : [];
+        var alive = this.party.filter(function (p) { return !p.hero && p.stage >= 1 && p.hp > 0 && !self.ultBlocked(p); });
         alive.sort(function (a, b) { return b.stage - a.stage; });
-        return alive.length ? [alive[0]] : partners.slice(0, 1);
+        return alive.length ? [alive[0]] : [];
+    };
+
+    // 大技の条件を満たさない（主人公が倒れているときの白虎の牙）。段階1〜3の連携攻撃は条件なし
+    Battle.prototype.ultBlocked = function (p) {
+        var u = p.ult || {};
+        if (!(p.stage >= this.rules.ultStage && u.type && u.needHero)) return false;
+        var hero = this.hero();
+        return !(hero && hero.hp > 0);
     };
 
     Battle.prototype.canUse = function (id, actor) {
@@ -799,7 +810,7 @@
     Battle.prototype.useUlt = function (p) {
         var R = this.rules, hero = this.hero(), self = this;
         var u = p.ult || {};
-        var useUlt = p.stage >= R.ultStage && u.type && !(u.needHero && !(hero && hero.hp > 0));
+        var useUlt = p.stage >= R.ultStage && u.type; // 白虎の牙の条件は bondUsers で見る
         if (!useUlt) {
             this.enemies.forEach(function (e) { if (e.alive) self.damage(e, R.comboPower); });
             return p.name + "との" + R.comboName + "！ すべての敵に " + R.comboPower + " のダメージ";
@@ -809,10 +820,10 @@
         if (u.powerAwake && p.awake) power = u.powerAwake;
         if (p.resolve) power = Math.floor(power * R.resolveMult);
         if (u.heroCost && hero && hero.hp > 0) hero.hp = Math.max(1, hero.hp - u.heroCost);
-        if (u.wall) this.wall = 1;
+        if (u.wall) this.ultWallNext = 1; // 次のターン、味方の受けるダメージ半分（3-4）
         if (u.type === "all") {
             this.enemies.forEach(function (e) { if (e.alive) self.damage(e, power); });
-            return p.name + "の" + u.name + "！ すべての敵に " + power + " のダメージ";
+            return p.name + "の" + u.name + "！ すべての敵に " + power + " のダメージ" + (u.wall ? "。次のターン、味方の受けるダメージが半分になる" : "");
         }
         var t = this.strongest();
         this.damage(t, power);
@@ -913,7 +924,7 @@
         var d = rand(power - R.enemySpread, power + R.enemySpread) - target.def;
         d = Math.max(R.minDamage, d);
         if (target.guarding) rate = Math.min(rate, Math.max(R.guard.min, R.guard.base - R.guard.perTrain * this.trainCount));
-        if (this.wall > 0) rate = Math.min(rate, R.wallRate);
+        if (this.wall > 0 || this.ultWall > 0) rate = Math.min(rate, R.wallRate);
         d = Math.max(R.minDamage, Math.floor(d * rate));
         target.hp -= d;
         if (a.mindOnHit) target.mind = Math.max(0, target.mind - a.mindOnHit);
@@ -935,19 +946,34 @@
         var self = this;
         if (!alive.length) return;
 
+        // 夜の帳：予告の出ている行動があれば、それを優先して打ち消す（攻撃でない行動でも。2026-10-17 利用者の決定）
+        if (this.nullify > 0 && a.warn) {
+            this.nullify = 0;
+            return label + " ……しかし、夜の帳が打ち消した";
+        }
         if (type === "defup") {
             e.tempDef = power;
             e.tempDefLeft = 2; // 次のターンまで
             return label + " 守りが固くなった";
         }
-        if (this.nullify > 0) {
-            this.nullify = 0;
-            return label + " ……しかし、夜の帳が打ち消した";
-        }
         if (type === "mind") {
-            var mt = a.target === "hero" && this.hero() && this.hero().hp > 0 ? this.hero() : alive[rand(0, alive.length - 1)];
+            var mt;
+            if (a.target === "hero") {
+                // 囁きは主人公だけを狙う（4-1、4-2）。倒れていれば空振り
+                var hh = this.hero();
+                if (!hh || hh.hp <= 0) return label + " ……しかし、" + (hh ? hh.name : "主人公") + "には届かなかった";
+                mt = hh;
+            } else {
+                mt = alive[rand(0, alive.length - 1)];
+            }
             mt.mind = Math.max(0, mt.mind - power);
             return label + " " + mt.name + "の心が " + power + " 減った";
+        }
+        // 夜の帳：次の敵の「攻撃」1回を打ち消す（3-3）。守りを固める・心を減らす行動では使わない。
+        // このターンにまだ予告の行動が残っていれば、そちらのためにとっておく
+        if (this.nullify > 0 && !this.warnPending) {
+            this.nullify = 0;
+            return label + " ……しかし、夜の帳が打ち消した";
         }
         var parts = [];
         if (type === "all") {
@@ -994,10 +1020,14 @@
         var i = 0;
         (function step() {
             if (self.finished) return;
+            // まだ動いていない敵に、予告の出ている行動が残っているか（夜の帳の優先に使う）
+            self.warnPending = alive.slice(i).some(function (e) { var na = e.alive && self.nextAction(e); return !!(na && na.warn); });
             if (i >= alive.length) {
                 self.party.forEach(function (p) { p.guarding = false; if (p.skillBlocked > 0) p.skillBlocked--; });
                 self.enemies.forEach(function (e) { if (e.tempDefLeft > 0) e.tempDefLeft--; });
                 self.wall = Math.max(0, self.wall - 1);
+                self.ultWall = self.ultWallNext; // 本当の姿は、使ったターンの次のターンに効く
+                self.ultWallNext = 0;
                 self.cover = null;
                 self.busy = false;
                 self.render();
@@ -1047,8 +1077,10 @@
     Battle.prototype.isGuardian = function (actor) {
         if (this.wall > 0 || this.nullify > 0 || this.cover) return false; // このターンはもう使った
         var self = this;
+        // 本当の姿の半減が効いているターンは、骨の盾を重ねても変わらないので候補から外す
         var cands = this.party.filter(function (p) {
-            return !p.hero && p.hp > 0 && p.skill && DEFENSIVE[p.skill.type] && self.canUse("skill", p);
+            return !p.hero && p.hp > 0 && p.skill && DEFENSIVE[p.skill.type] && self.canUse("skill", p) &&
+                !(p.skill.type === "wall" && self.ultWall > 0);
         });
         var pick = cands.find(function (p) { return p.skill.type === "wall"; }) || cands[0];
         return pick === actor;
@@ -1074,7 +1106,12 @@
         var win = this.enemies.every(function (e) { return !e.alive; });
         var lose = this.party.every(function (p) { return p.hp <= 0; });
         var boss = this.boss();
-        var interrupt = !win && !lose && this.interruptAt != null && boss && boss.alive && boss.hp <= boss.maxHp * this.interruptAt;
+        // 前半の割り込みは、一撃で 0 になっても（alive より先に）判定する。とどめは決着の絆の大技で刺す（5-5）
+        var interrupt = !lose && this.interruptAt != null && !!boss && boss.hp <= boss.maxHp * this.interruptAt;
+        if (interrupt) {
+            win = false;
+            if (boss.hp <= 0) { boss.hp = 1; boss.alive = true; } // 決着を支配の力 1 から始める
+        }
         if (!win && !lose && !interrupt) return false;
         this.finished = true;
         this.busy = true;
