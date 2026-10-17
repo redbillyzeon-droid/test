@@ -1,6 +1,6 @@
 # NovelAI 用のプロンプト（キャラクターの基本と立ち絵）
 
-作成：2026-10-06　／　更新：2026-10-17（キャラクターごとの服装・表情差分・ネガティブ、生成の手順を追加。9章に画面用の背景を追加）
+作成：2026-10-06　／　更新：2026-10-17（キャラクターごとの服装・表情差分・ネガティブ、生成の手順を追加。9章に画面用の背景を追加。9-3 に拠点の背景3枚を追加。9-3 の夜の版を「後日の案」に）
 状態：案。まだ一枚も生成していない。実際に生成して見た目を確かめてから直す。
 
 - キャラクターの見た目は `../characters.md` に合わせている。characters.md に書かれていない細かい指定（目の色、髪の長さ、服の色など）は、この文書で決めた**案**で、「（案）」と書いて区別する。
@@ -418,4 +418,47 @@ scenery, no humans, tropical island beach at dawn, view from the shore, a black 
 - 2026-10-17 直し：前は「中央からやや右下」と書いていたが、ボタンの列に隠れるので直した。
 - 石碑の「光る文字」は模様に見えればよい。読める文字（英語や日本語）になったものは使わない。
 - 夜明け（暗い紺からオレンジ）は、「失ったあとに、また朝が来る」の意味で選んだ案。
+
+### 9-3. 拠点の背景（発展度で3枚。2026-10-17 追加）
+
+`menu-ui.md` 2-3、`design/life-bond.md` 5章・8章 Q10（2026-10-17 決定）。拠点は「森を抜けた先の小さな広場。大きな木の根元に、葉っぱで屋根をかけただけの小屋」（`script/00_prologue_day1.md` 228〜230行）。海は台本に出てこないので描かない。
+
+3枚は「同じ場所が育った」と分かるように、場所と構図を変えない。プロンプトは「共通の部分」＋「発展度ごとの部分」＋「品質」で作り、共通の部分は3枚で一字も変えない。
+
+共通の部分：
+
+```
+scenery, no humans, a small grassy clearing in a tropical jungle, a huge old tree with thick roots on the left side, dense green jungle surrounding the clearing, a stone-ringed campfire in the center of the clearing, a small hut built against the roots of the huge tree, blue sky above the treetops, daytime, soft sunlight, eye level, wide shot, anime coloring, soft lighting, hand-painted
+```
+
+発展度ごとの部分：
+
+| 発展度 | ファイル名 | Seed の案 | 発展度ごとの部分 |
+|---|---|---|---|
+| 0〜1 | `bg_base_dev0` | 92001, 92002, 92003, 92004 | `a tiny hut with a roof of large leaves, a pile of driftwood, a few fishing nets drying on a branch, castaway camp, simple, rustic, lonely but warm` |
+| 2〜3 | `bg_base_dev2` | 92001, 92002, 92003, 92004（0〜1 と同じ） | `the leaf hut reinforced with wooden planks, log benches around the campfire, a wooden drying rack, stacked firewood, a low wooden fence, a trodden dirt path leading into the jungle, lived-in, cozy` |
+| 4〜6 | `bg_base_dev4` | 92001, 92002, 92003, 92004（0〜1 と同じ） | `a tiny peaceful village in the clearing, several small wooden huts with leaf roofs on low stone foundations, stone-paved paths, log benches around the campfire, wooden drying racks, wooden fences with small flowers, rope bridges between the trees, lived-in, cozy, warm and lively` |
+
+品質（3枚とも最後に足す）：`masterpiece, best quality, very aesthetic, absurdres`
+
+ネガティブに足す（3枚とも同じ）：
+
+```
+text, watermark, people, character, silhouette, animals, ocean, sea, beach, modern buildings, concrete, metal roof, glass windows, car, power lines, city, castle, ruins, destroyed, watchtower, tower, pier, dock, boat, farm field, crops, oven, kiln, forge, night, dark
+```
+
+- 人物は描かないので、`adult` のタグは入れない（`no humans`）。`nai_generate.py` の `check_prompt` は、タグに `no humans` があれば `adult` の確かめをしない（2026-10-17、コードを読んで確かめた。動かしてはいない）。
+- 施設そのもの（かまど、作業台、畑、家、見張り台、船着き場）は、どれと分かる形で描かない（`menu-ui.md` 2-3）。どの施設を建てたかは人によって違うため。そのため、見張り台・船着き場・畑・かまどに当たるタグをネガティブに入れた。発展度4〜6の「小屋がいくつか」は、特定の施設ではなく暮らしの量として描く。
+- 1280×720 に切り抜いたとき、焚き火が x 460〜700 に、大木の幹が左（x 60〜460）に来るものを選ぶ（`menu-ui.md` 2-3 の表）。左右は切り抜く位置で合わせる。上下は約 80px ずつ切れるので、焚き火が絵の上下の中央に近いものを選ぶ。
+- 1日目・2日目の【背景：森の中の広場・昼】と同じ場所なので、`bg_base_dev0` を兼ねて使える（使うかはシナリオ担当とプログラム担当が決める）。
+- 文字や看板のようなものが描かれた絵は使わない（6章の手順2の基準8）。
+
+作る順（案）：
+
+1. `bg_base_dev0` を Seed 4つで作り、構図の良い1枚を選ぶ（上の切り抜きの条件と、6章の手順2の基準8）。
+2. 選んだ1枚を参照画像にして、同じ Seed で `bg_base_dev2`、`bg_base_dev4` を作る。大木と広場の形が変わらず、小屋や道だけが増えるように、参照画像の強さを決める（6章の手順3と同じやり方。`nai_generate.py` には `--reference`・`--reference-strength` があるが、API の項目名はスクリプトの中でも**要確認**。参照画像の機能が人物の見た目を引き継ぐためのもので、背景の構図を保つのに効くかも**要確認**）。
+3. 参照画像を使えないときは、同じ Seed と共通の部分だけで作り、3枚を並べて見比べ、同じ場所に見える組を選ぶ。同じ場所に見えなければ、2枚目・3枚目は画像の一部を描き直す機能（あるかどうか**要確認**）で、1枚目に小屋や道を描き足す。
+4. 3枚を並べて、0〜1 → 2〜3 → 4〜6 の順に、はっきり育って見えるかを確かめる。差が小さいときは、発展度ごとの部分のタグを足す（例：4〜6 に `many huts`）。
+
+夜の版（後日の案。いまは作らない）：2026-10-17 決定（`plan.md` の表の末尾）で、拠点の夜は、昼の3枚に夜の膜（紺 #2b3a78、`adv-ui.md` の夜の色）と図形の焚き火の光を重ねて始める（`menu-ui.md` 2-3）。膜で足りないと分かったときだけ、夜の絵3枚を作る。そのときは、共通の部分の `blue sky above the treetops, daytime, soft sunlight` を `night, starry sky above the treetops, warm firelight from the campfire, moonlight` に、ネガティブの `night, dark` を `daytime, bright sky` に入れかえ、昼の絵を参照画像にして作る。ファイル名は `bg_base_dev0_night`・`bg_base_dev2_night`・`bg_base_dev4_night`、Seed は昼に選んだ1枚と同じ。作るかどうかは主担当と利用者が決める。
 
