@@ -42,6 +42,7 @@ push、公開、削除、外部への送信は、AGENTS.md のとおり毎回確
      - 自動戦闘の守りの技は、敵の強い行動の予告が出たターンだけ（全員で挑むときは1人、カバネの骨の盾を優先）。
      - 決着で全員で挑むときは、「絆」を1回選べば5人の大技が順に出て、最後の1人で支配の力が0になる。
    - 確かめ方：ティラノスクリプト本体のフォルダに `game/tyrano-proto/data/` の中身をコピーし、`python -m http.server 8799` で公開して、`node game/tyrano-proto/tools/check_battle.js http://localhost:8799/index.html` と `check_adv.js` を実行する（Node.js と Playwright が要る。導入は利用者の承認を得てから）。
+   - **2026-10-17 ローカルで実行：`check_adv.js` 14/14、`check_battle.js` 56/56 合格**（ティラノビルダー v3.05a のひな形のエンジン。`first.ks` の `tyrano.ks` を `system/tyrano.ks` に直した。くわしくは `tasks/handoff.md`）。
    - 通ったら、`docs/game/handoff-local-engine-check.md` の手順で、ティラノビルダーで動くかも確かめる（エンジンを決めるための作業）。
 2. **`game/tools/nai_generate.py` を直す**（頼んであったが、まだ確かめていない）：男性キャラ（主人公ユウ、GM など）のネガティブから `flat chest` を外す。V4.5 で V5 の絵を参照する引数を足す（API の項目名は要確認。既定は dry run のまま）。
 3. **確認役のレビュー**：今日の変更（`design/battle.md`、`design/affection.md`、`system.md`、`battle-ui.md`、`script/`、`game/`）を `project-reviewer` に見てもらい、指摘を直す。

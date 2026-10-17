@@ -48,3 +48,9 @@
 - 次の作業：台本の直し（森のぬしのカード、報酬の行、段階3〜5の「心 +1」、初期値の変数）、`battle.js` の設定・決戦の割り込み・報酬、`nai_generate.py` の男性用ネガティブと参照画像。
 
 - 2026-10-17：作業環境をローカルに移す。引き継ぎの手順、最初に貼る命令、残りの作業は `tasks/local-takeover.md`。commit `a38ea26` の試作の戦闘プログラムは作業途中で、テストが通るかは未確認。
+
+- 2026-10-17（ローカル）：リポジトリを利用者の PC の `D:\ゲーム\lost-island` に clone した。Node.js 24.20.0（winget）を入れ、テスト用フォルダ `D:\ゲーム\lost-island-test`（リポジトリの外）に、ティラノビルダー v3.05a のひな形（`resources/app/system/tyrano`、ティラノスクリプト Ver6.00）と `game/tyrano-proto/data/` の中身をコピーし、Playwright と Chromium を入れた。
+- 試作の `first.ks` が `tyrano.ks` を呼んでいて、ビルダーのひな形では 404 になった（ビルダーでは `system/tyrano.ks` にある）。`@call storage="system/tyrano.ks"` に直した。
+- 自動テストの結果（ブラウザで開いたとき。ティラノビルダーのプレビューではない）：`check_adv.js` 14/14 合格、`check_battle.js` 56/56 合格。commit `a38ea26` の戦闘プログラムは、手を加えずにすべて通った。
+- テストの動かし方（ローカル）：`D:\ゲーム\lost-island-test\engine` で `python -m http.server 8799 --bind 127.0.0.1`、リポジトリで `NODE_PATH=D:/ゲーム/lost-island-test/node_modules` を付けて `node game/tyrano-proto/tools/check_battle.js http://127.0.0.1:8799/index.html`。
+- 未実行：ティラノビルダーの画面（プレビュー）での確認と、exe への書き出し（`docs/game/handoff-local-engine-check.md` の手順）。
