@@ -136,7 +136,7 @@ short kimono, white kimono, red trim, red obi, wide sleeves, thighs, sandals, be
 服装・小物：
 
 ```
-arm tattoo, chest tattoo, skeleton tattoo, bone tattoo on arms and collarbone, small flower pattern inside the bone tattoo, collarbone, crop top, white crop top, midriff, navel, denim shorts, seashell necklace, hoop earrings, nail polish
+white bone tattoo, skeletal tattoo on forearms, clavicle tattoo, arm tattoo, collarbone, crop top, white crop top, midriff, navel, denim shorts, seashell necklace, hoop earrings, white nails, faded red string bracelet
 ```
 
 | 表情 | ファイル名 | 表情のタグ |
@@ -148,10 +148,15 @@ arm tattoo, chest tattoo, skeleton tattoo, bone tattoo on arms and collarbone, s
 | 悲しみ | `kabane_sad` | `sad, downcast eyes, closed mouth, teary eyes` |
 | 驚き | `kabane_surprised` | `surprised, wide-eyed, open mouth` |
 
-ネガティブに足す：`skeleton, skull, exposed bone, undead, pale skin, black hair, short hair, gothic`
+ネガティブに足す：`skull, exposed bone, undead, pale skin, black hair, short hair, gothic, flower tattoo, chest tattoo, copyright, logo, text`
+
+- 2026-10-18 に直した（評価役の確認による）：骨を前に出す（`white bone tattoo, skeletal tattoo on forearms, clavicle tattoo`）、骨の白（`white nails`）、村娘の名残の小物（`faded red string bracelet`）を足した。花の文を外し、ネガティブから `skeleton` を外した（骨の模様まで弱めていたため）。前の版では、腕全体が花の模様になる絵や、著作権表示のような文字が入る絵が出た。
+- 妖怪らしさは「骨格の位置の白い骨」と「骨の白」で出す。タトゥーが光る表現は個別エンド（`script/endings/kabane.md`）のためにとっておき、立ち絵では使わない。人魂は、夜や感情が高まる場面だけに重ねる別の画像にする（案）。
 
 - 崩れやすいところ：タトゥーではなく本物の骨や骸骨が描かれる、肌が白くなる、ゴシック風の服になる。
 - タトゥーは「腕と鎖骨」（characters.md）。骨の模様の中に小さな花の模様を入れるのは、人間の村娘だったころの名残として決めた案。花の模様がタグで出るか（自然な文の部分が Ver5／Ver4.5 で効くか）は**要確認**。出なければ `floral tattoo` を足して試す。
+  - 2026-10-18 決定：**花は一枚絵だけで描き、立ち絵には入れない**（全身の立ち絵の大きさでは見えないため）。描くのは、個別イベント（`script/events/kabane_1-3.md` の「すき間の小さな花」）と個別エンドの一枚絵。
+  - 鎖骨の骨の模様は、基準の絵（Seed 2378716315）では髪に隠れて出ていない。顔の絵の切り抜きを作るときに描き足す（`game/tools/nai_inpaint.py` は未完成。2026-10-18 の3回は、文字の札や灰色の四角になった）。
 - 「つけまつげ」は一般的なタグがないので、`long eyelashes, eyeliner` で表す（案）。
 - 巨大な骸骨の姿は戦闘の絵なので、ここでは作らない。
 
@@ -359,6 +364,7 @@ Seed の数字に意味はない（あとで探しやすいように、キャラ
 | （例）コノハ | 笑顔 | 差分 Ver4.5 | `konoha_smile_seed20003.png` | 20003 | （要確認） | 832×1216 | 表情のタグだけ 2-2「笑顔」 | 2-2 のとおり | `v5_konoha_normal_seed20003.png` | （要確認） | | |
 | **コノハ** | 通常 | 試作 Ver5（**基準の絵**） | `v5_konoha_normal_seed340993522.png` | 340993522 | `nai-diffusion-5-full` | 832×1216 | 2-2 のとおり（基本・服装・通常の表情・1-3 の構図・画風・品質） | 2-2 のとおり ＋ `off shoulder, bare shoulders, cleavage, socks, tabi`（Ver5 は肩出し・胸元・足袋が出やすかったため） | — | — | 肩を出さない、素足に草履、しっぽは中くらいで右へ出る。鈴は2つ（Ver5 は `bell hair ornament` を左右一対で描きやすい。利用者が2つでよいと判断）。全13枚（Ver4.5 5枚、Ver5 8枚）から利用者が選んだ | 2026-10-18 |
 | **ノクティア** | 通常 | 試作 Ver5（**基準の絵**） | `v5_noctia_normal_seed2483128904.png` | 2483128904 | `nai-diffusion-5-full` | 832×1216 | 2-1 のとおり（基本・服装・通常の表情・1-3 の構図・画風・品質） | 2-1 のとおり（足したものなし） | — | — | 長いストレートの黒髪が設定どおり、長袖のドレスで胸元にレース。表情は「口を閉じた微笑み」のタグでも口が少し開いて牙が見える（`fangs` の影響と思われる。4枚とも同じ）。ランダムな Seed の4枚から利用者が選んだ | 2026-10-18 |
+| **カバネ** | 通常 | 試作 Ver5（**基準の絵**） | `v5_kabane_normal_b_seed2378716315.png` | 2378716315 | `nai-diffusion-5-full` | 832×1216 | 2-3 のとおり（2026-10-18 に直した版） | 2-3 のとおり（2026-10-18 に直した版） | — | — | 前腕と二の腕の白い骨が骨格の位置に透けて見える。白い爪、片手首に赤い紐。鎖骨の模様は髪に隠れて出ていない（あとで描き足す）。前の版の3枚（花の腕の模様、文字入り）は使わない。直した版の4枚から、評価役の確認を経て利用者が選んだ | 2026-10-18 |
 
 - 生成した画像と、`nai_generate.py` が一緒に保存する設定の JSON は `outputs/nai/` にある（Git 管理外）。この表は、どれを採用したかを残すためのもの。
 - 採用した Seed は、ほかの絵（一枚絵など）でも同じキャラクターに使い回す（`asset-list.md` の「生成するときの注意」）。
