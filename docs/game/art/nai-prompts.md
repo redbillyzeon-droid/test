@@ -120,7 +120,7 @@ short kimono, white kimono, red trim, red obi, wide sleeves, thighs, sandals, be
 - 体の絵にしっぽが描かれていると重ねにくいので、表情の6枚は「しっぽが体の後ろに小さく見える」くらいで選ぶ（6章の手順2）。
 - 本数と好感度の段階の対応は `characters.md`（最初1本、段階1で2本、段階2で3本、段階4で4本、段階5で5本）。
 
-ネガティブに足す：`furry, animal nose, extra ears, multiple tails, kitsune, kyuubi, short stature, chibi`
+ネガティブに足す：`furry, animal nose, extra ears, multiple tails, kitsune, kyuubi, short stature, chibi`（Ver5 では、さらに `off shoulder, bare shoulders, cleavage, socks, tabi` を足した。2026-10-18、記録の表）
 
 - 崩れやすいところ：獣の顔になる、人の耳と狐の耳が両方出る、しっぽが増える、元気な性格のタグに引っぱられて幼く見える。
 - 幼く見えやすいキャラクターなので、`adult, mature female` に加えて、体つきのタグ（`medium breasts, toned`）を外さない。
@@ -297,7 +297,9 @@ profile, from side, face in shadow, shaded face, standing, full body, simple bac
 
 **要確認（まとめ）**：
 
-- Ver5 と Ver4.5 のモデルの正式な名前と、API で指定する名前。`nai_generate.py` の既定は `nai-diffusion-4-5-full`（これも要確認と書かれている）。Ver5 の名前はまだ分からない。
+- Ver5 と Ver4.5 のモデルの正式な名前と、API で指定する名前。2026-10-18 に API で確かめた：Ver4.5 は `nai-diffusion-4-5-full`、Ver5 は `nai-diffusion-5-full`（`--model nai-diffusion-5-full`）で、どちらも生成できた。Ver5 の名前は公式の資料にはなく、コミュニティのツールが使う名前を試したもの。
+- Ver4.5 で参照画像を使うときは、画像をそのまま送らず、先に `https://image.novelai.net/ai/encode-vibe` で vibe に変換してから `reference_image_multiple` に入れる（`D:\AI社員	ools
+ai_generate.py` の実績。生の画像だと 500 になる）。`nai_generate.py` はまだこの形に対応していない。
 - Ver5 と Ver4.5 で、プロンプトの書き方（タグと自然な文の扱い、品質のタグを自動で足すかどうか など）がどう違うか。
 - 参照画像の機能の**正式な名前**、設定の項目（強さなど）と**おすすめの値**、API での指定のしかた。この文書では「参照画像の機能」と呼ぶ。値は試しながら決め、決めた値を下の表に書く。
 - 参照画像の機能を使うと Anlas（有料のポイント）がいくら増えるか。
@@ -356,7 +358,7 @@ Seed の数字に意味はない（あとで探しやすいように、キャラ
 |---|---|---|---|---|---|---|---|---|---|---|---|---|
 | （例）コノハ | 通常 | 試作 Ver5 | `v5_konoha_normal_seed20003.png` | 20003 | （要確認） | 832×1216 | 2-2 のとおり | 2-2 のとおり | — | — | （例）耳としっぽの数が正しい | |
 | （例）コノハ | 笑顔 | 差分 Ver4.5 | `konoha_smile_seed20003.png` | 20003 | （要確認） | 832×1216 | 表情のタグだけ 2-2「笑顔」 | 2-2 のとおり | `v5_konoha_normal_seed20003.png` | （要確認） | | |
-| | | | | | | | | | | | | |
+| **コノハ** | 通常 | 試作 Ver5（**基準の絵**） | `v5_konoha_normal_seed340993522.png` | 340993522 | `nai-diffusion-5-full` | 832×1216 | 2-2 のとおり（基本・服装・通常の表情・1-3 の構図・画風・品質） | 2-2 のとおり ＋ `off shoulder, bare shoulders, cleavage, socks, tabi`（Ver5 は肩出し・胸元・足袋が出やすかったため） | — | — | 肩を出さない、素足に草履、しっぽは中くらいで右へ出る。鈴は2つ（Ver5 は `bell hair ornament` を左右一対で描きやすい。利用者が2つでよいと判断）。全13枚（Ver4.5 5枚、Ver5 8枚）から利用者が選んだ | 2026-10-18 |
 
 - 生成した画像と、`nai_generate.py` が一緒に保存する設定の JSON は `outputs/nai/` にある（Git 管理外）。この表は、どれを採用したかを残すためのもの。
 - 採用した Seed は、ほかの絵（一枚絵など）でも同じキャラクターに使い回す（`asset-list.md` の「生成するときの注意」）。
