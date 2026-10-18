@@ -42,6 +42,8 @@ from pathlib import Path
 API_URL = "https://image.novelai.net/ai/generate-image"
 DEFAULT_MODEL = "nai-diffusion-4-5-full"
 SIZES = {"portrait": (832, 1216), "landscape": (1216, 832), "square": (1024, 1024)}
+USER_AGENT = "nai_generate.py/1.0 (lost-island game asset script)"
+KEY_ENV_NAMES = ("NOVELAI_API_KEY", "novelai")
 
 COMMON_NEGATIVE = (
     "lowres, bad anatomy, bad hands, extra fingers, missing fingers, text, watermark, signature, "
@@ -141,11 +143,33 @@ def build_payload(prompt: str, negative: str, size: str, seed: int, model: str, 
             "steps": steps,
             "scale": scale,
             "sampler": "k_euler_ancestral",
+            # 以下は D:\AI社員\tools\nai_generate.py（Ver4.5 で生成できた実績あり）に合わせた値
+            "params_version": 3,
+            "noise_schedule": "karras",
+            "ucPreset": 0,
+            "qualityToggle": True,
+            "sm": False,
+            "sm_dyn": False,
+            "dynamic_thresholding": False,
+            "cfg_rescale": 0,
+            "legacy": False,
+            "legacy_v3_extend": False,
+            "add_original_image": True,
+            "controlnet_strength": 1,
             "negative_prompt": negative,
             "v4_prompt": {"caption": {"base_caption": prompt, "char_captions": []}, "use_coords": False, "use_order": True},
-            "v4_negative_prompt": {"caption": {"base_caption": negative, "char_captions": []}},
+            "v4_negative_prompt": {"caption": {"base_caption": negative, "char_captions": []}, "legacy_uc": False},
         },
     }
+
+
+def load_key() -> str:
+    """API キーを環境変数から読む（表示しない）。NOVELAI_API_KEY がなければ、利用者の PC で使っている novelai を見る。"""
+    for name in KEY_ENV_NAMES:
+        key = os.environ.get(name, "").strip()
+        if key:
+            return key
+    return ""
 
 
 def check_prompt(prompt: str) -> None:
@@ -162,7 +186,9 @@ def generate(payload: dict, api_key: str) -> bytes:
     req = urllib.request.Request(
         API_URL,
         data=json.dumps(payload).encode("utf-8"),
-        headers={"Authorization": f"Bearer {api_key}", "Content-Type": "application/json"},
+        # 既定の Python-urllib の User-Agent は Cloudflare に弾かれるため、ツールの名前を名乗る
+        headers={"Authorization": f"Bearer {api_key}", "Content-Type": "application/json",
+                 "Accept": "application/zip", "User-Agent": USER_AGENT},
         method="POST",
     )
     try:
@@ -231,9 +257,9 @@ def main(argv: list[str] | None = None) -> int:
     if args.reference is not None and not args.reference_confirmed:
         sys.exit("中止：参照画像の項目名が要確認のため送信しません。公式の資料で確かめてから --reference-confirmed を付けてください")
 
-    api_key = os.environ.get("NOVELAI_API_KEY", "").strip()
+    api_key = load_key()
     if not api_key:
-        sys.exit("中止：環境変数 NOVELAI_API_KEY がありません")
+        sys.exit("中止：環境変数 NOVELAI_API_KEY（または novelai）がありません")
 
     png = generate(payload, api_key)
     OUT_DIR.mkdir(parents=True, exist_ok=True)
