@@ -2,6 +2,7 @@
 ; *start   ：探索中に獣と出会って戦闘 → 結果で分岐、という流れを試す（数字は試作のまま、直接渡す）
 ; *explore ：探索の1戦（大イノシシ、相棒コノハ段階1）。数字は docs/game/design/battle.md の既定値
 ; *final   ：決戦の前半 → 割り込み → 中盤・後半（仮の会話） → 決着、の流れ
+; *mid_test：決戦の中盤の選び直し（日記の言葉／ほかの4人が支える）だけを試す。前半の戦闘は飛ばす
 
 *start
 [cm]
@@ -95,7 +96,8 @@ IslandBattle.start({
 
 ; ---------------------------------------------------------------------------
 ; 決戦：前半 → 割り込み → 中盤 → 後半 → 決着（会話は仮の1行と選択肢）
-; 試験用の値：相棒コノハ段階4、力6、心3、発展度4（かまど、作業台、家、見張り台）、手がかりあり
+; 試験用の値：相棒コノハ段階4、力6、心3、発展度4（かまど、作業台、家、見張り台）、手がかり（日記）あり
+; 日記と発展度4の両方を満たすので、中盤でまちがえると「日記の言葉」だけが出る（battle.md 5-3）
 *final
 [cm]
 [loadcss file="./data/others/island_battle/battle.css"]
@@ -130,10 +132,12 @@ IslandBattle.start({
 [s]
 
 ; 前半で全員倒れたとき（f.battle_result = "wipe"。罰なし。「もう一度」で前半の最初から）
+; 選択肢の下（文の窓）に「タイトルに戻る」の説明を出す（script/ui_text.md 7-3）
 *final_first_down
 [layopt layer="message0" visible=true]
 [cm]
 視界が、端のほうから黒くなっていく。……まだだ。まだ、終われない。（仮）[p]
+「続きから」→「14日目・決戦の前」で、出発の前からやり直せます
 [glink color="black" size=24 x=440 y=240 width=400 text="もう一度" target="*final_first_retry"]
 [glink color="black" size=24 x=440 y=320 width=400 text="タイトルに戻る" target="*final_to_title"]
 [s]
@@ -145,11 +149,22 @@ IslandBattle.retry();
 [endscript]
 [s]
 
-; 中盤：相棒への誘い
+; 中盤：相棒への誘い（06_day14_battle.md「中盤」。battle.md 5-3）
 *final_mid
 [layopt layer="message0" visible=true]
 [cm]
+[iscript]
+tf.partner_name = { noctia: "ノクティア", konoha: "コノハ", kabane: "カバネ", hakuren: "ハクレン", ignia: "イグニア" }[f.partner] || "相棒";
+tf.test_mid_scenes = [];
+[endscript]
 カイ「……強いね。じゃあ、少しだけ、思い出させてあげよう」（仮）[p]
+[if exp="f.partner == 'all'"]
+5人とも、幻を振り払った。（仮。全員で挑んでいる：5人とも断る）[p]
+[iscript]
+IslandBattle.addBond(f.battle_state);
+[endscript]
+[jump target="*final_late"]
+[endif]
 [if exp="f[f.partner + '_resolve'] == 1"]
 コノハ「いらない。ボクは、ユウといる」（仮。段階5：はっきり断る）[p]
 [iscript]
@@ -172,17 +187,102 @@ IslandBattle.addBond(f.battle_state, 3);
 [endscript]
 コノハ「……ううん。ボクは、ここにいる！」（仮）[p]
 [jump target="*final_late"]
+; まちがえたとき：選び直しは、日記（f.clue_old_diary）と発展度4以上を合わせて1回だけ（f.final_retry_used）。
+; 両方満たすときは「日記の言葉」だけ（06_day14_battle.md 164〜168行、life-bond.md 4-2）
 *mid_wrong
 [cm]
-[if exp="f.dev >= 4 && f.final_retry_used != 1"]
-[eval exp="f.final_retry_used = 1"]
-島のみんなの声が聞こえた。……もう一度、言葉を選べる。（仮）[p]
-[jump target="*mid_choice"]
+[if exp="f.final_retry_used != 1 && f.clue_old_diary == 1"]
+[jump target="*mid_diary"]
 [endif]
+[if exp="f.final_retry_used != 1 && f.dev >= 4"]
+[jump target="*mid_support"]
+[endif]
+[jump target="*mid_lost"]
+
+; 日記の言葉（沈没船の日記を持っているとき、1回だけ。台詞は 06_day14_battle.md の写し）
+*mid_diary
+[eval exp="tf.test_mid_scenes.push('diary')"]
+相棒の足が、幻のほうへ、もう一歩、進む。[p]
+（……あの日記だ）[p]
+ユウ「[emb exp="tf.partner_name"]、聞いてくれ。沈没船の日記に、書いてあった。『勝ったやつを、俺は一人も見ていない』って」[p]
+ユウ「カイの約束で、取り戻せたやつは、一人もいないんだ」[p]
+相棒の足が、止まった。[p]
+カイ「……古いものを拾ってきたね。まあいい。もう一度だけ、言ってごらん」[p]
+[eval exp="f.final_retry_used = 1"]
+[jump target="*mid_choice"]
+
+; ほかの4人が支える（発展度4以上で、日記を持っていないとき、1回だけ。台詞は 06_day14_battle.md の写し）
+*mid_support
+[eval exp="tf.test_mid_scenes.push('support')"]
+相棒の足が、幻のほうへ、もう一歩、進む。[p]
+そのとき、霧の向こうから、声が聞こえた。[p]
+[if exp="f.partner != 'noctia'"]
+ノクティア「[emb exp="tf.partner_name"]。幻は、あたたかく見えるだけよ。……戻ってきなさい」[p]
+[endif]
+[if exp="f.partner != 'konoha'"]
+コノハ「[emb exp="tf.partner_name"]ー！　帰ってきてー！　ボク、まだ一緒にごはん食べたい！」[p]
+[endif]
+[if exp="f.partner != 'kabane'"]
+カバネ「ちょっと[emb exp="tf.partner_name"]！　そっち行くとか、マジないから！」[p]
+[endif]
+[if exp="f.partner != 'hakuren'"]
+ハクレン「[emb exp="tf.partner_name"]、振り返れ！　お前の居場所は、こっちだ！」[p]
+[endif]
+[if exp="f.partner != 'ignia'"]
+イグニア「……[emb exp="tf.partner_name"]。……いかないで」[p]
+[endif]
+相棒の足が、止まった。[p]
+カイ「……邪魔が入ったね。まあいい。もう一度だけ、言ってごらん」[p]
+（……まだ、間に合う）[p]
+[eval exp="f.final_retry_used = 1"]
+[jump target="*mid_choice"]
+
 *mid_lost
 [cm]
+[eval exp="tf.test_mid_scenes && tf.test_mid_scenes.push('lost')"]
 相棒が、幻に負けた。（仮。コノハなら NTR エンド、ほかは鬱エンド）[p]
 [jump target="*final_test_end"]
+
+; ---------------------------------------------------------------------------
+; 中盤の選び直しだけを試す（前半の戦闘を飛ばし、仮の f.battle_state で中盤から始める）
+; 相棒コノハ段階4、心3。日記・発展度の組み合わせを選ぶ
+*mid_test
+[cm]
+[loadcss file="./data/others/island_battle/battle.css"]
+[loadjs storage="island_battle/battle.js"]
+[layopt layer="message0" visible=true]
+中盤の選び直しのテスト。条件を選んでください。
+[glink color="black" size=22 x=340 y=120 width=600 text="日記あり・発展度3" target="*mid_test_diary"]
+[glink color="black" size=22 x=340 y=200 width=600 text="日記なし・発展度4" target="*mid_test_support"]
+[glink color="black" size=22 x=340 y=280 width=600 text="日記あり・発展度4（両方）" target="*mid_test_both"]
+[glink color="black" size=22 x=340 y=360 width=600 text="日記なし・発展度3（選び直しなし）" target="*mid_test_none"]
+[s]
+*mid_test_diary
+[eval exp="tf.mt_diary = 1; tf.mt_dev = 3"]
+[jump target="*mid_test_go"]
+*mid_test_support
+[eval exp="tf.mt_diary = 0; tf.mt_dev = 4"]
+[jump target="*mid_test_go"]
+*mid_test_both
+[eval exp="tf.mt_diary = 1; tf.mt_dev = 4"]
+[jump target="*mid_test_go"]
+*mid_test_none
+[eval exp="tf.mt_diary = 0; tf.mt_dev = 3"]
+[jump target="*mid_test_go"]
+*mid_test_go
+[cm]
+[iscript]
+f.str = 6; f.mind = 3; f.dex = 2; f.wis = 2; f.train_count = 3;
+f.partner = "konoha"; f.ev_konoha = 4; f.konoha_tails = 4; f.konoha_resolve = 0; f.partner_wavering = 0;
+f.item_herb = 0; f.item_medicine = 0;
+f.clue_old_diary = tf.mt_diary; f.clue_tally_marks = 0; f.dev = tf.mt_dev;
+f.final_mind_zero = 0; f.final_retry_used = 0;
+f.battle_result = "interrupt";
+f.battle_state = { partner: "konoha", party: [], bond: 2, bondMax: 5, bossHp: 200, bossMaxHp: 400,
+    items: { herb: 0, medicine: 0 }, bonusHerb: 0, waveCount: 0, dev: f.dev };
+IslandBattle.retries = 0;
+[endscript]
+[jump target="*final_mid"]
 
 ; 後半：主人公への誘い。判定値が2以下なら、選択肢は1つだけ（plan.md 2026-10-17）
 *final_late
@@ -235,6 +335,7 @@ IslandBattle.start({
 [layopt layer="message0" visible=true]
 [cm]
 膝が、床についた。……ああ。立つさ。（仮）[p]
+「続きから」→「14日目・決戦の前」で、出発の前からやり直せます
 [glink color="black" size=24 x=440 y=240 width=400 text="もう一度" target="*final_finish_retry"]
 [glink color="black" size=24 x=440 y=320 width=400 text="タイトルに戻る" target="*final_to_title"]
 [s]

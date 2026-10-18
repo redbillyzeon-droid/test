@@ -16,6 +16,11 @@
  *               探索の1戦（報酬と道具の書き戻し、負けたら f.hp −3）、
  *               決戦の割り込み（f.battle_result = "interrupt"、f.battle_state、f.final_mind_zero）、
  *               中盤の選び直しと後半の選択肢の数、決着のとどめ、全員倒れたとき（"wipe"）のやり直し。
+ *   2026-10-18 追加（battle.md 4-1・4-2・5-1・5-3、life-bond.md 3章・4-2、plan.md「選択の色」）：
+ *               全員で挑む決戦の支配の力（max(600, 1100 − 100 × 発展度)）と 400 以下の割り込み、
+ *               中盤の選び直し（日記の言葉／ほかの4人が支える、合わせて1回）、
+ *               好物がだぶるときのめずらしい報酬の置きかえ（薬 ×1）、選択の帯の色（探索は朱、決戦は深紅）、
+ *               全員倒れたときの「タイトルに戻る」の説明の文（script/ui_text.md 7-3）。
  */
 const { chromium } = require("playwright");
 
@@ -537,6 +542,9 @@ async function checkFinalWipe(browser, errors, check) {
     await advanceUntil(page, hasGlinks(page));
     const ch = await glinks(page);
     check("全員倒れたとき：選択肢は「もう一度」と「タイトルに戻る」", ch.join() === "もう一度,タイトルに戻る", JSON.stringify(ch));
+    const note = await msgText(page);
+    check("全員倒れたとき：選択肢の下に「タイトルに戻る」の説明（ui_text.md 7-3）",
+        note.includes("「続きから」→「14日目・決戦の前」で、出発の前からやり直せます"), note);
     await clickGlink(page, "もう一度");
     await advanceUntil(page, hasBattle(page), 10);
     const re = await page.evaluate(() => {
@@ -593,6 +601,190 @@ async function checkFinalWipe(browser, errors, check) {
     await page.close();
 }
 
+// ---- 2026-10-18 の設計（全員の決戦の支配の力、好物がだぶるとき、選択の色、中盤の選び直し） ----------
+async function checkDesign(browser, errors, check) {
+    let page = await openBattle(browser, errors, "探索の戦闘");
+    const r = await page.evaluate(async () => {
+        const IB = IslandBattle;
+        const sleep = (ms) => new Promise((res) => setTimeout(res, ms));
+        IB.current.destroy();
+        const out = {};
+        const f = TYRANO.kag.stat.f;
+        const saveF = JSON.parse(JSON.stringify(f));
+        const resetF = () => {
+            Object.keys(f).forEach((k) => { if (!(k in saveF)) delete f[k]; });
+            Object.assign(f, JSON.parse(JSON.stringify(saveF)));
+        };
+        const rnd = Math.random;
+        Math.random = () => 0.5;
+        try {
+            // 1. 全員で挑む決戦の支配の力：max(600, 1100 − 100 × 発展度)。割り込みは 400 以下（値）
+            out.allPower = [0, 3, 4, 6].map((dev) => {
+                const b = IB.start({ mode: "final", phase: "first", partner: "all", dev, items: { herb: 0, medicine: 0 }, autoDelay: 10 });
+                const v = { dev, max: b.boss().maxHp, hp: b.boss().hp, cut: b.interruptHp };
+                b.destroy();
+                return v;
+            });
+            let b = IB.start({ mode: "final", phase: "first", partner: "all", dev: 3, items: { herb: 0, medicine: 0 }, autoDelay: 10, endDelay: 10 });
+            const boss = b.boss();
+            b.minions().forEach((e) => { e.alive = false; e.hp = 0; });
+            boss.hp = 402;
+            b.damage(boss, 1);
+            out.at401 = b.checkEnd();
+            b.damage(boss, 1);
+            out.at400 = b.checkEnd();
+            await sleep(150);
+            out.allInterrupt = { res: IB.last && IB.last.result, st: f.battle_state && f.battle_state.bossHp, max: f.battle_state && f.battle_state.bossMaxHp };
+            resetF();
+            // 2人で挑むときは変えない（支配の力 400、半分で中盤へ）
+            b = IB.start({ mode: "final", phase: "first", partner: "konoha", dev: 6, items: { herb: 0, medicine: 0 }, autoDelay: 10 });
+            out.duo = { max: b.boss().maxHp, cut: b.interruptHp, at: b.interruptAt };
+            b.destroy();
+
+            // 2. めずらしい報酬で好物がだぶるとき：出さずに薬 ×1
+            const rare = async (preset, vars) => {
+                resetF();
+                Object.assign(f, vars);
+                Math.random = () => 0.5;
+                const bb = IB.start({ mode: "explore", partner: "", enemies: [{ preset, hp: 1 }], wis: 20, autoDelay: 10, endDelay: 10 });
+                Math.random = () => 0.1; // めずらしい報酬が出る
+                bb.command("attack");
+                Math.random = () => 0.5;
+                await sleep(100);
+                const L = IB.last;
+                return { rare: L.rare, rw: L.rewards, rep: L.rareReplaced, med: Number(f.item_medicine || 0) };
+            };
+            out.rare = {
+                eagleFree: await rare("eagle", {}),
+                eagleHave: await rare("eagle", { gift_white_flower: 1 }),
+                eagleGave: await rare("eagle", { gave_white_flower: 1 }),
+                nushiFree: await rare("nushi", {}),
+                nushiSeed: await rare("nushi", { item_soy_seed: 1 }),
+                nushiSoy: await rare("nushi", { item_soy: 1 }),
+                nushiTofu: await rare("nushi", { gift_fried_tofu: 1 }),
+                nushiPlanted: await rare("nushi", { soy_plant_day: 6 }),
+                nushiGave: await rare("nushi", { gave_fried_tofu: 1 }),
+                batMed: await rare("bat", { gift_white_flower: 1, item_soy_seed: 1 }),
+            };
+            resetF();
+
+            // 3. 選択の帯の色：探索は朱 #e8502a、決戦は深紅 #c4262e（白の字）。地は生成り #efe9dc
+            const colors = (cfg) => {
+                const bb = IB.start(Object.assign({ autoDelay: 100000, items: { herb: 0, medicine: 0 } }, cfg));
+                bb.select(1);
+                const sel = getComputedStyle(bb.root.querySelector(".ib-item.ib-sel"));
+                bb.autoBtn.classList.add("ib-on");
+                const auto = getComputedStyle(bb.autoBtn);
+                const v = { sel: sel.backgroundColor, selText: sel.color, auto: auto.backgroundColor, autoText: auto.color,
+                    bar: getComputedStyle(bb.root.querySelector(".ib-enemybar")).backgroundColor,
+                    menu: getComputedStyle(bb.menuEl).backgroundColor };
+                bb.destroy();
+                return v;
+            };
+            out.colorExplore = colors({ mode: "explore", partner: "", enemies: [{ name: "岩", hp: 999, atk: 1 }] });
+            out.colorFinal = colors({ mode: "final", phase: "first", partner: "konoha" });
+        } finally {
+            Math.random = rnd;
+            if (IB.current && !IB.current.destroyed) IB.current.destroy();
+            resetF();
+        }
+        return out;
+    });
+    const ap = (r.allPower || []).map((v) => v.max).join();
+    check("全員の決戦：発展度0・3・4・6 で支配の力 1100・800・700・600", ap === "1100,800,700,600" &&
+        r.allPower.every((v) => v.hp === v.max && v.cut === 400), JSON.stringify(r.allPower));
+    const ai = r.allInterrupt || {};
+    check("全員の決戦：支配の力 401 では止めず、400 以下で interrupt", r.at401 === false && r.at400 === true &&
+        ai.res === "interrupt" && ai.st === 400 && ai.max === 800, JSON.stringify({ a: r.at401, b: r.at400, ai }));
+    check("2人の決戦は変えない（支配の力 400、半分で中盤へ）", r.duo.max === 400 && r.duo.cut === null && r.duo.at === 0.5, JSON.stringify(r.duo));
+    const R = r.rare || {};
+    const isMed = (x) => !!x && x.rare && !!x.rw && x.rw.item_medicine === 1 && !x.rw.gift_white_flower && !x.rw.item_soy_seed && x.med === 1;
+    check("めずらしい報酬：だぶらなければ白い花・大豆の種が出る",
+        R.eagleFree.rw.gift_white_flower === 1 && !R.eagleFree.rw.item_medicine && R.nushiFree.rw.item_soy_seed === 1 && !R.nushiFree.rw.item_medicine,
+        JSON.stringify([R.eagleFree, R.nushiFree]));
+    check("めずらしい報酬：白い花を持っている・渡したあとは、薬 ×1 に置きかえる",
+        isMed(R.eagleHave) && isMed(R.eagleGave) && R.eagleHave.rw.item_food === 2 && (R.eagleHave.rep || []).join() === "gift_white_flower",
+        JSON.stringify([R.eagleHave, R.eagleGave]));
+    check("めずらしい報酬：大豆の種・大豆・油揚げを持っている、植えた、油揚げを渡したあとは、薬 ×1 に置きかえる",
+        isMed(R.nushiSeed) && isMed(R.nushiSoy) && isMed(R.nushiTofu) && isMed(R.nushiPlanted) && isMed(R.nushiGave) &&
+        R.nushiSeed.rw.item_food === 4 && R.nushiSeed.rw.item_wood === 3,
+        JSON.stringify([R.nushiSeed, R.nushiSoy, R.nushiTofu, R.nushiPlanted, R.nushiGave]));
+    check("めずらしい報酬：好物でない報酬（コウモリの薬）は変えない", R.batMed.rw.item_medicine === 1 && !(R.batMed.rep || []).length, JSON.stringify(R.batMed));
+    const ce = r.colorExplore || {}, cf = r.colorFinal || {};
+    check("選択の帯の色：探索は朱 #e8502a、白の字（自動のオンも）",
+        ce.sel === "rgb(232, 80, 42)" && ce.selText === "rgb(255, 255, 255)" && ce.auto === "rgb(232, 80, 42)" && ce.autoText === "rgb(255, 255, 255)", JSON.stringify(ce));
+    check("選択の帯の色：決戦は深紅 #c4262e、白の字（自動のオンも）",
+        cf.sel === "rgb(196, 38, 46)" && cf.selText === "rgb(255, 255, 255)" && cf.auto === "rgb(196, 38, 46)" && cf.autoText === "rgb(255, 255, 255)", JSON.stringify(cf));
+    check("地の色は生成り #efe9dc", ce.bar === "rgb(239, 233, 220)" && /^rgba\(239, 233, 220/.test(ce.menu), JSON.stringify({ bar: ce.bar, menu: ce.menu }));
+    await page.close();
+
+    // 4. 中盤の選び直し（battle_test.ks *mid_test。前半の戦闘は飛ばす）
+    const midScenes = (pg) => pg.evaluate(() => ((TYRANO.kag.variable.tf || {}).test_mid_scenes || []).join());
+    const openMid = async (variant) => {
+        const pg = await browser.newPage({ viewport: { width: 1280, height: 720 } });
+        pg.on("pageerror", (e) => errors.push("pageerror: " + e.message));
+        pg.on("console", (m) => { if (m.type() === "error") errors.push("console: " + m.text()); });
+        await pg.goto(url);
+        await pg.waitForSelector(".glink_button", { timeout: 20000 });
+        await pg.waitForTimeout(1500);
+        // test_menu.ks に入口がないので、battle_test.ks の *mid_test へ直接飛ぶ
+        await pg.evaluate(() => {
+            TYRANO.kag.stat.is_strong_stop = false;
+            TYRANO.kag.ftag.startTag("jump", { storage: "battle_test.ks", target: "*mid_test" });
+        });
+        await advanceUntil(pg, async () => (await glinks(pg)).some((t) => t.includes(variant)), 20);
+        await clickGlink(pg, variant);
+        await advanceUntil(pg, hasGlinks(pg));
+        return pg;
+    };
+    const ended = (pg) => advanceUntil(pg, msgHas(pg, "決戦のテストは終わり"));
+
+    // 日記あり・発展度3：まちがえる → 日記の場面 → 選び直し1回。2回目は選び直しなし
+    page = await openMid("日記あり・発展度3");
+    await clickGlink(page, "まちがえる");
+    await advanceUntil(page, hasGlinks(page));
+    const d1 = { scenes: await midScenes(page), ch: await glinks(page), used: await page.evaluate(() => TYRANO.kag.stat.f.final_retry_used) };
+    check("中盤：日記ありでまちがえる → 日記の言葉の場面で選び直し（f.final_retry_used = 1）",
+        d1.scenes === "diary" && d1.ch.some((t) => t.includes("正しい言葉")) && d1.used === 1, JSON.stringify(d1));
+    await clickGlink(page, "まちがえる");
+    const d2end = await ended(page);
+    const d2 = await midScenes(page);
+    check("中盤：選び直しは1回だけ（2回目のまちがいで幻に負ける）", d2end && d2 === "diary,lost", d2);
+    await page.close();
+
+    // 日記なし・発展度4：まちがえる → ほかの4人が支える → 正しい言葉で絆 +3
+    page = await openMid("日記なし・発展度4");
+    await clickGlink(page, "まちがえる");
+    await advanceUntil(page, hasGlinks(page));
+    const s1 = { scenes: await midScenes(page), ch: await glinks(page) };
+    check("中盤：日記なし・発展度4でまちがえる → ほかの4人が支える場面で選び直し",
+        s1.scenes === "support" && s1.ch.some((t) => t.includes("正しい言葉")), JSON.stringify(s1));
+    await clickGlink(page, "正しい言葉");
+    await waitFor(msgHas(page, "ここにいる"));
+    const s2 = await page.evaluate(() => TYRANO.kag.stat.f.battle_state.bond);
+    check("中盤：選び直して正しければ絆 +3（2 → 5）", s2 === 5, String(s2));
+    await page.close();
+
+    // 両方：日記の場面だけ。2回目は選び直しなし
+    page = await openMid("日記あり・発展度4（両方）");
+    await clickGlink(page, "まちがえる");
+    await advanceUntil(page, hasGlinks(page));
+    const b1 = await midScenes(page);
+    await clickGlink(page, "まちがえる");
+    const b2end = await ended(page);
+    const b2 = await midScenes(page);
+    check("中盤：日記と発展度4の両方 → 日記の場面だけ、選び直しは合わせて1回", b1 === "diary" && b2end && b2 === "diary,lost", JSON.stringify([b1, b2]));
+    await page.close();
+
+    // どちらもない：選び直しなし
+    page = await openMid("日記なし・発展度3");
+    await clickGlink(page, "まちがえる");
+    const n1end = await ended(page);
+    const n1 = await midScenes(page);
+    check("中盤：日記なし・発展度3なら選び直しなし（幻に負ける）", n1end && n1 === "lost", n1);
+    await page.close();
+}
+
 (async () => {
     const browser = await chromium.launch();
     const errors = [];
@@ -640,7 +832,7 @@ async function checkFinalWipe(browser, errors, check) {
     await page.close();
 
     // 1つの組が例外で止まっても、ほかの組は続けて結果を出す
-    for (const [name, fn] of [["計算と自動戦闘", checkCalc], ["探索の1戦", checkExplore], ["レビューの修正", checkFixes], ["決戦の流れ", checkFinal], ["全員倒れたとき", checkFinalWipe]]) {
+    for (const [name, fn] of [["計算と自動戦闘", checkCalc], ["探索の1戦", checkExplore], ["レビューの修正", checkFixes], ["決戦の流れ", checkFinal], ["全員倒れたとき", checkFinalWipe], ["2026-10-18 の設計", checkDesign]]) {
         try {
             await fn(browser, errors, check);
         } catch (e) {

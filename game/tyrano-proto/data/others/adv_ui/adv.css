@@ -83,4 +83,17 @@
 .li-ops { position: absolute; right: 18px; bottom: 30px; display: flex; flex-direction: column; gap: 6px; pointer-events: auto; }
 .li-ops div { background: #fff; color: #111; font-family: var(--li-head); font-size: 14px; padding: 3px 10px; border: 3px solid #111;
   transform: skewX(-10deg); text-align: center; cursor: pointer; }
-.li-ops div.on { background: #f0c43a; }
+/* オンのとき：朱の地に白の字（2026-10-17 決定「選択の色」。金は使わない） */
+.li-ops div.on { background: #e8502a; color: #fff; }
+
+/* 「次にやること」の警告（menu-ui.md 1-5）：K2 は朱の地に白、K1 は墨赤の地に白 */
+.li-next.k2 { background: #e8502a; color: #fff; border-left-color: #fff; animation: li-slide-in .25s ease-out; }
+.li-next.k1 { background: #7a1a1a; color: #fff; border-left-color: #efe9dc; animation: li-shake .3s ease-out; }
+@keyframes li-slide-in { from { transform: translateX(-40px); opacity: 0; } to { transform: none; opacity: 1; } }
+@keyframes li-shake { 0%,100% { transform: none; } 30% { transform: translateX(-3px); } 60% { transform: translateX(3px); } }
+
+/* 「状態」ボタン（884, 32, 112×48。menu-ui.md 2章）。押せる層（li-ops-layer）に置く */
+.li-status-btn { position: absolute; left: 884px; top: 32px; width: 112px; height: 48px; line-height: 40px; text-align: center;
+  background: #fff; color: #111; border: 4px solid #111; font-family: var(--li-head); font-size: 20px; transform: skewX(-10deg);
+  cursor: pointer; pointer-events: auto; box-sizing: border-box; }
+.li-status-btn:hover { background: #e8502a; color: #fff; }

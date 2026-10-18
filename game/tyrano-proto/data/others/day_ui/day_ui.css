@@ -1,0 +1,334 @@
+/* day_ui：1日の流れの画面の試作。座標は 1280×720。見た目の正本は docs/game/menu-ui.md（案）。
+   色：朱 #e8502a（いま・押せる・選んでいる帯）、金 #f0c43a（つながったものだけ）、潮灰 #7d8b96（まだ）、墨赤 #7a1a1a（取り返せない） */
+
+.du-layer { position: absolute; left: 0; top: 0; width: 1280px; height: 720px; z-index: 20000; pointer-events: none;
+  font-family: var(--li-body, sans-serif); color: #fff; }
+.du-layer * { box-sizing: border-box; }
+.du-layer > * { pointer-events: auto; }
+.li-ops-layer.du-hide-ops .li-ops { display: none; }
+
+/* ---- 共通の部品 ---- */
+.du-btn { position: absolute; background: #fff; color: #111; border: 4px solid #111; font-family: var(--li-head, sans-serif);
+  font-size: 20px; text-align: center; line-height: 40px; height: 48px; min-width: 104px; padding: 0 14px; transform: skewX(-10deg);
+  cursor: pointer; user-select: none; }
+.du-btn:hover, .du-btn.on { background: #e8502a; color: #fff; }
+.du-btn.disabled { background: #7d8b96; color: #ccc; }
+.du-big { font-size: 28px; }
+.du-small { background: #fff; color: #111; border: 3px solid #111; font-family: var(--li-head, sans-serif); font-size: 14px;
+  height: 32px; line-height: 26px; min-width: 80px; padding: 0 8px; text-align: center; transform: skewX(-10deg); cursor: pointer; }
+.du-small:hover { background: #e8502a; color: #fff; }
+.du-face { position: relative; display: inline-block; flex: none; clip-path: polygon(8% 0, 100% 0, 92% 100%, 0 100%); }
+.du-face-label { position: absolute; left: 0; right: 0; top: 50%; transform: translateY(-50%); text-align: center;
+  font-family: var(--li-head, sans-serif); font-size: 60%; color: rgba(255,255,255,.85); }
+.du-face[style*="40px"] .du-face-label, .du-face[style*="32px"] .du-face-label { font-size: 14px; }
+.du-face[style*="64px"] .du-face-label { font-size: 26px; }
+.du-face[style*="84px"] .du-face-label, .du-face[style*="76px"] .du-face-label { font-size: 32px; }
+.du-face[style*="140px"] .du-face-label { font-size: 56px; }
+.du-face.away { filter: grayscale(1) brightness(.7); }
+.du-nametag { display: inline-block; color: #111; font-family: var(--li-head, sans-serif); font-size: 20px; padding: 0 12px;
+  border: 3px solid #111; transform: rotate(-4deg); white-space: nowrap; }
+.du-mark { position: relative; display: inline-block; vertical-align: middle; }
+.du-mark.s24 { width: 24px; height: 24px; } .du-mark.s28 { width: 28px; height: 28px; } .du-mark.s32 { width: 32px; height: 32px; }
+.du-mark .du-svg { width: 100%; height: 100%; display: block; }
+.du-gbadge { position: absolute; width: 60%; height: 60%; left: 52%; top: 52%; background: #111; border-radius: 50%;
+  border: 1.5px solid #fff; display: block; }
+.du-gbadge svg { width: 100%; height: 100%; display: block; }
+.du-mark.day9 { width: auto; height: auto; background: #111; color: #7d8b96; font-size: 12px; padding: 2px 8px; transform: skewX(-10deg);
+  font-family: var(--li-head, sans-serif); }
+.du-dias { display: inline-flex; gap: 6px; align-items: center; }
+.du-dia { display: inline-block; width: 16px; height: 16px; transform: rotate(45deg) scale(.75); border: 2px solid #7d8b96; }
+.du-dias.s22 .du-dia { width: 22px; height: 22px; }
+.du-dia.white { background: #fff; border-color: #fff; }
+.du-dia.gold { background: #f0c43a; border-color: #111; transform: rotate(45deg) scale(.85); }
+.du-dia.double { box-shadow: 0 0 0 2px #f0c43a, 0 0 0 4px #111; }
+.du-bar { display: inline-flex; gap: 4px; }
+.du-cell { display: inline-block; width: 24px; height: 18px; border: 2px solid #7d8b96; transform: skewX(-12deg); }
+.du-cell.on { border-color: #111; }
+.du-cell.new { outline: 2px solid #f0c43a; }
+.du-slottag { display: inline-block; width: 40px; height: 26px; line-height: 22px; text-align: center; font-size: 13px; margin-right: 4px;
+  border: 2px solid #7d8b96; color: #7d8b96; transform: skewX(-10deg); font-family: var(--li-head, sans-serif); }
+.du-slottag.on.morning { background: #3aa6d8; border-color: #111; color: #fff; }
+.du-slottag.on.noon { background: #e8502a; border-color: #111; color: #fff; }
+.du-slottag.on.night { background: #2b3a78; border-color: #111; color: #fff; }
+.du-yukari { display: inline-block; background: #fff; color: #111; font-weight: 700; font-size: 13px; padding: 0 8px; height: 22px; line-height: 22px;
+  border-left: 4px solid #cfc3a0; box-shadow: 1px 0 0 #111 inset; transform: skewX(-10deg); white-space: nowrap; }
+.du-note { color: #7d8b96; font-size: 13px; font-weight: 700; }
+.du-note.small { font-size: 12px; }
+.du-tiny { color: #7d8b96; font-size: 12px; }
+.du-gold { color: #f0c43a; font-family: var(--li-head, sans-serif); }
+.du-gold.big { font-size: 22px; }
+.du-none { color: #7d8b96; }
+.du-ini { display: inline-block; position: absolute; right: 2px; bottom: 2px; color: #111; font-style: normal; font-size: 11px; font-weight: 700;
+  padding: 0 4px; border: 1px solid #111; }
+.du-toast { position: absolute; left: 340px; top: 300px; width: 600px; padding: 18px 20px; background: #7a1a1a; color: #fff; z-index: 1000000001;
+  font-size: 16px; text-align: center; border: 3px solid #111; font-family: var(--li-body, sans-serif); }
+
+/* 警告（menu-ui.md 1-5） */
+.du-warn { padding: 6px 12px; border-left: 6px solid #e8502a; background: rgba(255,255,255,.92); color: #111; font-size: 15px; margin-bottom: 4px; }
+.du-warn.K2 { background: #e8502a; color: #fff; border-left-color: #fff; }
+.du-warn.K1, .du-warn.K3 { background: #7a1a1a; color: #fff; border-left-color: #efe9dc; }
+.du-warn.K4::before { content: "▲ "; color: #e8502a; }
+
+/* ---- 行動を選ぶ画面（menu-ui.md 2章） ---- */
+.du-actions { position: absolute; inset: 0; pointer-events: none !important; }
+.du-actions > * { pointer-events: auto; }
+/* 「状態」ボタン（会話画面の部品）を押せるように、行動を選ぶ画面の地は押せなくしている */
+.du-actions > .du-dim { position: absolute; left: 0; right: 0; top: 360px; bottom: 0; background: linear-gradient(rgba(0,0,0,0), rgba(0,0,0,.35) 30%); pointer-events: none; }
+.du-acts { position: absolute; left: 60px; top: 196px; width: 400px; display: flex; flex-direction: column; gap: 14px; }
+.du-act { position: relative; height: 64px; background: #fff; color: #111; border: 4px solid #111; transform: skewX(-10deg);
+  font-family: var(--li-head, sans-serif); font-size: 26px; line-height: 56px; padding-left: 64px; cursor: pointer; white-space: nowrap; transition: transform .1s; }
+.du-act:hover, .du-act.on { background: #e8502a; color: #fff; transform: skewX(-10deg) translateX(12px); }
+.du-act.disabled { background: #7d8b96; color: #d8dde2; cursor: default; }
+.du-act.disabled:hover { transform: skewX(-10deg); }
+.du-act-icon { position: absolute; left: 10px; top: 8px; width: 40px; height: 40px; background: #111; border-radius: 4px; }
+.du-act-icon.explore { border-radius: 50%; } .du-act-icon.spend { clip-path: polygon(50% 100%, 0 35%, 25% 0, 50% 20%, 75% 0, 100% 35%); }
+.du-act-icon.build { clip-path: polygon(50% 0, 100% 45%, 85% 45%, 85% 100%, 15% 100%, 15% 45%, 0 45%); }
+.du-act-icon.train { clip-path: polygon(0 40%, 100% 40%, 100% 60%, 0 60%); } .du-act-icon.rest { clip-path: circle(40% at 60% 40%); }
+.du-evtag { position: absolute; right: 8px; top: 12px; display: flex; align-items: center; gap: 4px; font-size: 12px; font-family: var(--li-body, sans-serif); font-weight: 700; line-height: 1; }
+.du-why { position: absolute; right: 12px; top: 0; font-size: 13px; font-family: var(--li-body, sans-serif); }
+.du-meet { position: absolute; left: 700px; top: 196px; width: 540px; height: 150px; background: rgba(17,17,17,.85); padding: 8px 14px;
+  clip-path: polygon(0 0, 94% 0, 100% 16%, 100% 100%, 0 100%); }
+.du-actions.panel-open .du-meet { display: none; }
+.du-meet-title { font-family: var(--li-head, sans-serif); font-size: 18px; }
+.du-meet-faces { display: flex; gap: 8px; margin-top: 2px; }
+.du-meet-one { position: relative; text-align: center; }
+.du-meet-name { font-size: 14px; }
+.du-face-mark { position: absolute; right: -2px; top: -2px; }
+.du-desc { position: absolute; left: 60px; top: 610px; width: 760px; height: 44px; line-height: 44px; background: #111; color: #fff; font-size: 16px;
+  padding: 0 16px; transform: skewX(-10deg); }
+.du-desc:empty { display: none; }
+.du-sys { position: absolute; left: 820px; top: 650px; display: flex; gap: 8px; }
+
+/* 一覧のパネル */
+.du-panel { position: absolute; left: 480px; top: 150px; width: 760px; height: 500px; background: rgba(17,17,17,.92); padding: 16px 24px;
+  clip-path: polygon(1% 0, 100% 2%, 99% 100%, 0 98%); }
+.du-panel-title { display: inline-block; background: #fff; color: #111; font-family: var(--li-head, sans-serif); font-size: 26px; padding: 0 14px;
+  transform: rotate(-3deg); margin-bottom: 10px; }
+.du-panel .du-back { left: 600px; top: 440px; width: 140px; }
+.du-panel-body { height: 370px; overflow: hidden; }
+.du-row { display: flex; align-items: center; height: 72px; margin-bottom: 8px; background: rgba(255,255,255,.08); }
+.du-row-main { display: flex; align-items: center; gap: 12px; height: 100%; width: 440px; padding-left: 4px; cursor: pointer; flex: none; }
+.du-row-all .du-row-main, .du-panel[data-kind="invite"] .du-row-main { width: 100%; }
+.du-row-main:hover { background: #e8502a; }
+.du-row-name { font-family: var(--li-head, sans-serif); font-size: 22px; width: 120px; flex: none; white-space: nowrap; }
+.du-row-all .du-row-name { width: auto; }
+.du-row-stage { display: flex; flex-direction: column; gap: 4px; width: 190px; flex: none; }
+.du-row-stagetext { font-size: 13px; font-weight: 700; }
+.du-row-mark { width: 32px; flex: none; }
+.du-row-right { margin-left: 8px; width: 256px; }
+.du-right { margin-left: auto; margin-right: 16px; }
+.du-mini-faces { display: flex; }
+.du-mini-faces .du-face { margin-right: -10px; }
+.du-giftbtn { display: flex; align-items: center; gap: 6px; height: 56px; padding: 0 8px; background: #fff; color: #111; border: 3px solid #111;
+  transform: skewX(-10deg); cursor: pointer; }
+.du-giftbtn:hover { background: #e8502a; color: #fff; }
+.du-glabel { display: flex; flex-direction: column; line-height: 1.2; }
+.du-glabel b { font-size: 16px; } .du-glabel small { font-size: 11px; }
+.du-gicon { display: inline-block; width: 28px; height: 28px; border: 2px solid #111; border-radius: 50%; flex: none; }
+.du-gicon.gift_red_fruit { background: #b8283a; } .du-gicon.gift_rainbow_shell { background: linear-gradient(90deg, #f2a7b8, #3aa6d8, #9cc96b); border-radius: 50% 50% 10% 10%; }
+.du-gicon.gift_white_flower { background: #fff; } .du-gicon.item_fish { background: #b8692f; border-radius: 50% 20% 50% 20%; }
+.du-gicon.gift_fried_tofu { background: #c98a3c; border-radius: 6px; }
+
+/* 建てる一覧 */
+.du-grid { display: grid; grid-template-columns: 352px 352px; gap: 8px; align-content: start; }
+.du-brow { position: relative; height: 72px; padding: 6px 10px; background: rgba(255,255,255,.08); cursor: pointer; }
+.du-brow:hover { background: #e8502a; }
+.du-brow.short { background: rgba(125,139,150,.35); color: #bbb; cursor: default; }
+.du-brow.repair { border: 2px dashed #7a1a1a; }
+.du-brow-name { font-family: var(--li-head, sans-serif); font-size: 22px; display: block; }
+.du-brow-cost { font-size: 14px; display: flex; gap: 8px; }
+.du-cost.lack { color: #e8502a; font-weight: 700; }
+.du-yukari-mini { position: absolute; right: 6px; top: 6px; display: flex; align-items: center; gap: 4px; }
+
+/* 誰と建てる？（menu-ui.md 2-2） */
+.du-h-head { display: flex; justify-content: space-between; align-items: center; }
+.du-h-fac { font-family: var(--li-head, sans-serif); font-size: 20px; }
+.du-hcount { font-size: 16px; font-weight: 700; }
+.du-hcount b { font-family: var(--li-head, sans-serif); font-size: 22px; }
+.du-hcount.flash { animation: du-flash .3s; }
+@keyframes du-flash { 0% { color: #e8502a; transform: scale(1.1); } 100% { color: #fff; transform: none; } }
+.du-hcards { display: flex; justify-content: center; gap: 16px; margin-top: 12px; }
+.du-hcard { position: relative; width: 160px; height: 220px; background: #111; border: 2px solid #7d8b96; padding: 8px; text-align: center; cursor: pointer;
+  transition: transform .1s; }
+.du-hcard:hover { transform: translateY(-6px); }
+.du-hcard .du-face { filter: saturate(.7); }
+.du-hcard.sel { border: 4px solid #e8502a; }
+.du-hcard.sel .du-face { filter: none; }
+.du-hcard .du-yukari { position: absolute; left: 4px; top: 4px; }
+.du-hcard .du-strtag { display: block; background: #fff; color: #111; font-size: 12px; margin: 4px auto 0; width: 48px; }
+.du-check { position: absolute; right: -10px; top: -10px; width: 32px; height: 32px; border-radius: 50%; background: #e8502a; color: #fff;
+  line-height: 32px; font-weight: 700; display: none; }
+.du-help { display: none; font-size: 13px; }
+.du-hcard.sel .du-check, .du-hcard.sel .du-help { display: block; }
+.du-hcard.shake { animation: li-shake .3s; }
+.du-h-note { font-size: 14px; color: rgba(255,255,255,.8); margin-top: 8px; }
+.du-panel .du-hok { left: 340px; top: 432px; width: 240px; height: 56px; line-height: 48px; font-size: 26px; }
+
+/* 探索マップ（menu-ui.md 4章） */
+.du-map { position: absolute; inset: 0; background: linear-gradient(#5d8fa8, #3b6a52); }
+.du-map.night { background: linear-gradient(#22305f, #1c3326); }
+.du-map-title { position: absolute; left: 40px; top: 160px; background: #fff; color: #111; font-family: var(--li-head, sans-serif); font-size: 24px; padding: 0 14px; }
+.du-area { position: absolute; width: 220px; height: 110px; cursor: pointer; }
+.du-area-card { width: 200px; height: 56px; background: #fff; color: #111; border: 4px solid #111; transform: rotate(-4deg); position: relative;
+  font-family: var(--li-head, sans-serif); font-size: 26px; line-height: 48px; padding-left: 12px; }
+.du-area:hover .du-area-card { background: #e8502a; color: #fff; transform: rotate(-4deg) scale(1.1); }
+.du-area.locked { cursor: default; } .du-area.locked .du-area-card { background: #7d8b96; color: #aaa; }
+.du-area.locked:hover .du-area-card { background: #7d8b96; transform: rotate(-4deg); }
+.du-area.du-unknown .du-area-card { background: #111; color: #7d8b96; border: 2px dashed #7d8b96; }
+.du-area-lock { font-size: 13px; background: #111; color: rgba(255,255,255,.8); display: inline-block; padding: 0 6px; }
+.du-claw { position: absolute; right: 6px; top: -4px; color: #e8502a; font-size: 18px; }
+.du-mats { display: flex; gap: 4px; margin-top: 4px; }
+.du-mat { width: 28px; height: 28px; border-radius: 50%; background: #efe9dc; color: #111; border: 2px solid #111; font-size: 12px; text-align: center; line-height: 24px; }
+.du-qbox { width: 28px; height: 28px; border-radius: 50%; border: 2px dashed #fff; color: #fff; text-align: center; line-height: 24px; font-family: var(--li-head, sans-serif); font-size: 16px; }
+.du-first { position: absolute; left: -10px; top: -14px; width: 64px; height: 24px; line-height: 24px; background: #111; color: #fff; font-family: var(--li-head, sans-serif);
+  font-size: 14px; text-align: center; transform: skewX(-10deg); }
+.du-first::before { content: ""; display: inline-block; width: 6px; height: 6px; border-radius: 50%; background: #e8502a; margin-right: 4px; vertical-align: middle; }
+.du-area-who { position: absolute; left: 210px; top: 0; display: flex; gap: 2px; }
+.du-map-with { position: absolute; left: 40px; top: 630px; width: 260px; height: 48px; line-height: 48px; background: #111; padding-left: 12px; font-size: 18px; }
+.du-map .du-back { left: 1100px; top: 630px; width: 140px; }
+
+/* 結果のカード */
+.du-cardwrap { position: absolute; inset: 0; background: rgba(0,0,0,.4); cursor: pointer; }
+.du-card { position: absolute; left: 390px; top: 190px; width: 500px; min-height: 240px; background: #fff; color: #111; border: 4px solid #111; padding: 20px 26px;
+  clip-path: polygon(0 0, 88% 0, 100% 14%, 100% 100%, 0 100%); }
+.du-card.joined { box-shadow: inset -3px 3px 0 #f0c43a; }
+.du-card-title { font-family: var(--li-head, sans-serif); font-size: 24px; margin-bottom: 10px; }
+.du-card-line { font-size: 17px; margin: 2px 0; }
+.du-card-line.gold { color: #111; background: #f0c43a; display: inline-block; padding: 0 8px; font-weight: 700; }
+.du-card-line.mind { font-size: 14px; color: #7d8b96; }
+.du-card-line.mind::before { content: "◆ "; }
+.du-card-next { margin-top: 14px; font-size: 13px; color: #7d8b96; }
+
+/* 1日のまとめ（menu-ui.md 5章） */
+.du-summary { position: absolute; inset: 0; background: rgba(10,14,30,.88); cursor: pointer; }
+.du-sum-title { position: absolute; left: 50px; top: 40px; background: #fff; color: #111; font-family: var(--li-head, sans-serif); font-size: 52px; padding: 0 18px;
+  border: 5px solid #111; box-shadow: 6px 6px 0 #111; transform: rotate(-6deg); }
+.du-days { position: absolute; left: 600px; top: 48px; display: flex; gap: 6px; }
+.du-dcell { position: relative; width: 40px; height: 44px; line-height: 40px; text-align: center; border: 2px solid #7d8b96; color: #7d8b96; transform: skewX(-10deg); font-size: 14px; }
+.du-dcell.done { background: #fff; color: #111; border-color: #111; }
+.du-dcell.now { background: #e8502a; color: #fff; border-color: #111; }
+.du-dcell.final { background: #7a1a1a; color: #fff; }
+.du-dcell[data-top]::before { content: attr(data-top); position: absolute; left: 0; right: 0; top: -18px; font-size: 11px; line-height: 1; color: #fff; }
+.du-sum-left { position: absolute; left: 600px; top: 104px; font-size: 14px; }
+.du-sum-box { position: absolute; background: rgba(255,255,255,.06); padding: 8px 12px; overflow: hidden; }
+.du-sum-box.got { left: 40px; top: 150px; width: 380px; height: 220px; }
+.du-sum-box.built { left: 40px; top: 380px; width: 380px; height: 180px; }
+.du-sum-box.mates { left: 440px; top: 150px; width: 420px; height: 410px; }
+.du-sum-box.yu { left: 880px; top: 150px; width: 360px; height: 410px; }
+.du-sum-boxtitle { display: inline-block; background: #fff; color: #111; font-family: var(--li-head, sans-serif); font-size: 16px; padding: 0 10px; margin-bottom: 6px; }
+.du-sum-line { font-size: 18px; } .du-sum-line.gold { color: #f0c43a; }
+.du-sum-yu { font-family: var(--li-head, sans-serif); font-size: 22px; }
+.du-sum-mate { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; height: 72px; margin-bottom: 4px; }
+.du-sum-mate .du-bar .du-cell { width: 18px; height: 14px; }
+.du-sum-stage { width: 100%; margin-left: 64px; margin-top: -18px; font-size: 13px; color: #f0c43a; }
+.du-sum-rest { position: absolute; left: 40px; top: 572px; width: 820px; height: 40px; line-height: 40px; background: #111; padding-left: 16px; transform: skewX(-8deg); font-size: 16px; }
+/* 警告は切らない。下の帯の上（y 698）にそろえ、行が多いときは上へのびる（上の欄の空いた下側に重なる） */
+.du-sum-warn { position: absolute; left: 40px; bottom: 24px; width: 820px; font-size: 14px; z-index: 2; }
+.du-sum-warn .du-warn { font-size: 13px; line-height: 17px; padding: 2px 10px; margin-bottom: 2px; }
+.du-summary .du-sum-save { left: 1146px; top: 574px; width: 104px; height: 40px; line-height: 32px; font-size: 16px; }
+.du-summary .du-sum-detail { left: 900px; top: 628px; width: 150px; height: 56px; line-height: 48px; }
+.du-summary .du-sum-next { left: 1064px; top: 628px; width: 186px; height: 56px; line-height: 48px; }
+
+/* 状態画面（menu-ui.md 3章） */
+.du-status { position: absolute; inset: 0; background: rgba(0,0,0,.78); z-index: 5; cursor: default; }
+.du-tabs { position: absolute; left: 40px; top: 34px; display: flex; gap: 12px; }
+.du-tab { width: 200px; height: 52px; line-height: 52px; text-align: center; background: #111; color: #7d8b96; font-family: var(--li-head, sans-serif); font-size: 22px; cursor: pointer; }
+.du-tab.on { background: #fff; color: #111; transform: rotate(-4deg); }
+.du-tab:hover { background: #e8502a; color: #fff; }
+.du-status .du-close { left: 1176px; top: 32px; width: 64px; height: 52px; }
+.du-st-top { position: absolute; left: 40px; top: 96px; width: 1200px; height: 44px; line-height: 44px; background: #111; transform: skewX(-8deg); display: flex; gap: 40px; padding-left: 20px; font-size: 18px; }
+.du-st-top b { font-family: var(--li-head, sans-serif); font-size: 22px; font-weight: normal; }
+.du-st-top em { font-style: normal; color: #f0c43a; font-family: var(--li-head, sans-serif); font-size: 24px; }
+.du-st-rows { position: absolute; left: 40px; top: 150px; width: 1200px; }
+.du-srow { position: relative; height: 76px; margin-bottom: 6px; background: rgba(255,255,255,.10); display: flex; align-items: center;
+  clip-path: polygon(0 0, 98% 0, 100% 20%, 100% 100%, 0 100%); }
+.du-srow.joined { box-shadow: inset -4px 4px 0 #f0c43a; }
+.du-srow > .du-face { margin-left: 8px; }
+.du-srow > .du-nametag { margin-left: 12px; width: 140px; text-align: center; }
+.du-st-stage { width: 260px; margin-left: 14px; }
+.du-st-words { font-weight: 700; font-size: 15px; margin-top: 4px; white-space: nowrap; }
+.du-st-words.gold { color: #f0c43a; }
+.du-st-words small { display: block; color: #fff; font-size: 12px; }
+.du-st-bar { width: 280px; margin-left: 10px; }
+.du-st-mark { width: 80px; text-align: center; }
+.du-st-slots { width: 170px; }
+.du-nowtag { width: 96px; height: 30px; line-height: 30px; text-align: center; background: #fff; color: #111; font-size: 13px; font-weight: 700; border-left: 6px solid #e8502a; }
+.du-all { position: absolute; left: 40px; top: 566px; width: 1200px; height: 122px; border: 2px solid rgba(255,255,255,.3); padding: 8px 16px; }
+.du-all.done { box-shadow: inset -4px 4px 0 #f0c43a; }
+.du-all-title { display: inline-block; background: #fff; color: #111; font-family: var(--li-head, sans-serif); font-size: 18px; padding: 0 10px; }
+.du-all-count { font-size: 14px; } .du-all-count b { font-family: var(--li-head, sans-serif); font-size: 30px; font-weight: normal; }
+.du-all-tight { font-size: 14px; }
+.du-all-prospect { position: absolute; right: 16px; top: 10px; }
+.du-legend { position: absolute; right: 16px; bottom: 6px; font-size: 11px; color: #7d8b96; }
+.du-yu { position: absolute; left: 40px; top: 150px; width: 580px; }
+.du-yu-title { display: inline-block; background: #fff; color: #111; font-family: var(--li-head, sans-serif); font-size: 16px; padding: 0 10px; margin: 4px 0; }
+.du-yu-row { height: 52px; display: flex; align-items: center; gap: 12px; background: rgba(255,255,255,.06); margin-bottom: 6px; padding: 0 10px; }
+.du-yu-name { font-family: var(--li-head, sans-serif); font-size: 20px; min-width: 70px; }
+.du-yu-val { font-family: var(--li-head, sans-serif); font-size: 24px; min-width: 80px; }
+.du-yu-note { font-size: 13px; color: rgba(255,255,255,.8); }
+.du-yu-warn { background: #e8502a; color: #fff; font-size: 12px; padding: 2px 6px; }
+.du-items { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+.du-item { position: relative; background: rgba(255,255,255,.1); padding: 4px 22px 4px 8px; font-size: 14px; }
+.du-island { position: absolute; left: 660px; top: 150px; width: 580px; }
+.du-dev { font-size: 18px; } .du-dev b { font-family: var(--li-head, sans-serif); color: #f0c43a; font-size: 30px; font-weight: normal; }
+.du-facs { display: grid; grid-template-columns: 284px 284px; gap: 8px; margin-top: 6px; }
+.du-fac { position: relative; height: 84px; padding: 6px 10px; background: rgba(125,139,150,.4); }
+.du-fac.built { background: #fff; color: #111; }
+.du-fac b { font-family: var(--li-head, sans-serif); font-weight: normal; font-size: 18px; }
+.du-fac-note { font-size: 13px; }
+.du-fac-note.bad { color: #7a1a1a; font-weight: 700; }
+.du-fac .du-yukari { position: absolute; right: 6px; top: 6px; }
+.du-gifts { display: flex; gap: 10px; align-items: flex-start; margin-top: 8px; flex-wrap: wrap; }
+.du-gifts .du-yu-title { width: 100%; }
+.du-gift { position: relative; width: 104px; height: 70px; text-align: center; padding-top: 4px; }
+.du-gift.unknown { border: 2px dashed #7d8b96; background: #111; }
+.du-gift.have, .du-gift.gave { background: #fff; color: #111; }
+.du-gift.gave .du-gicon { filter: saturate(.6); }
+.du-gift-q { font-family: var(--li-head, sans-serif); font-size: 26px; color: #7d8b96; }
+.du-gift-name { display: block; font-size: 12px; }
+.du-gave { position: absolute; right: -4px; top: -6px; background: #fff; color: #111; border: 1px solid #111; font-size: 11px; font-weight: 700; padding: 0 4px;
+  transform: skewX(-10deg); box-shadow: inset -2px 2px 0 #f0c43a; }
+
+/* 14日目とロード */
+.du-day14 { position: absolute; inset: 0; background: linear-gradient(#2b3a78, #c4262e); }
+.du-day14-note { position: absolute; left: 60px; top: 160px; font-size: 16px; }
+.du-day14 .du-day14-save { left: 60px; top: 220px; width: 140px; }
+.du-day14-why { position: absolute; left: 220px; top: 230px; font-size: 14px; color: #efe9dc; }
+.du-day14 .du-day14-restart { left: 60px; top: 320px; width: 460px; height: 64px; line-height: 56px; }
+.du-day14 .du-day14-exit { left: 60px; top: 420px; width: 220px; }
+.du-day14 .du-btn:hover { background: #c4262e; }
+.du-load { position: absolute; inset: 0; background: rgba(0,0,0,.9); z-index: 6; }
+.du-load-title { position: absolute; left: 40px; top: 34px; background: #fff; color: #111; font-family: var(--li-head, sans-serif); font-size: 26px; padding: 0 14px; }
+.du-aslot { position: relative; display: inline-block; vertical-align: top; width: 392px; height: 132px; margin: 100px 0 0 40px; margin-right: -28px; background: #111;
+  border-left: 8px solid #2b3a78; padding: 10px 14px; cursor: pointer; }
+.du-aslot:hover { background: #e8502a; }
+.du-aslot.empty { cursor: default; color: #7d8b96; }
+.du-aslot.empty:hover { background: #111; }
+.du-auto-tag { background: #2b3a78; color: #fff; font-size: 12px; padding: 0 6px; }
+.du-aslot-name { font-family: var(--li-head, sans-serif); font-size: 18px; margin-top: 4px; }
+.du-aslot-date { font-size: 12px; }
+.du-aslot-img { position: absolute; right: 10px; bottom: 10px; width: 120px; height: 68px; }
+.du-lock { position: absolute; right: 10px; top: 6px; font-size: 14px; }
+.du-load .du-load-manual { left: 40px; top: 260px; width: 200px; }
+.du-load .du-back { left: 1100px; top: 640px; width: 140px; }
+
+/* 試作で見て直したところ（2026-10-18） */
+.du-status { background: rgba(0,0,0,.9); } /* menu-ui.md 3章は黒 78%。後ろの行動のボタンが透けて読みにくいので 90% にした（案） */
+.du-meet { height: auto; min-height: 150px; }
+.du-actions.panel-open .du-desc { display: none; }
+.du-act-label { font-size: 24px; }
+.du-act[data-act="train"] .du-act-label { font-size: 20px; }
+.du-evtag { flex-direction: column; top: 4px; gap: 0; font-size: 11px; }
+.du-area.du-unknown { cursor: default; }
+/* 探索マップでも、左上の日付・右上の残り日数（会話画面の部品）が見えるように、上を透かす */
+.du-map { background: linear-gradient(rgba(0,0,0,0) 0 130px, #5d8fa8 130px, #3b6a52); }
+.du-map.night { background: linear-gradient(rgba(0,0,0,0) 0 130px, #22305f 130px, #1c3326); }
+.du-sum-mate { height: auto; min-height: 60px; }
+.du-sum-stage { margin: 0 0 0 64px; }
+
+/* レビューの直し（2026-10-18）：まとめの下の欄。警告を切らない */
+.du-sum-bottom { position: absolute; left: 40px; bottom: 24px; width: 820px; display: flex; flex-direction: column; gap: 6px; z-index: 2; }
+.du-sum-bottom .du-sum-rest { position: static; width: 100%; flex: none; }
+.du-sum-bottom .du-sum-warn { position: static; width: 100%; }
+.du-sum-bottom .du-sum-warn:empty { display: none; }
+.du-sum-bottom .du-warn { box-shadow: 0 0 0 2px rgba(10,14,30,.9); }

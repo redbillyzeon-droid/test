@@ -70,10 +70,13 @@ const url = process.argv[2] || "http://localhost:8799/index.html";
     await page.click(".li-ops div:nth-child(2)"); // オート
     await page.waitForTimeout(300);
     const autoOn = await page.evaluate(() => TYRANO.kag.stat.is_auto === true && $(".li-ops div:nth-child(2)").hasClass("on"));
+    // 2026-10-18 追加：オンのボタンは朱の地に白の字（plan.md「選択の色」。金は使わない）
+    const onColor = await page.evaluate(() => { const e = document.querySelector(".li-ops div:nth-child(2)"); const cs = getComputedStyle(e); return cs.backgroundColor + " / " + cs.color; });
     await page.click(".li-ops div:nth-child(2)");
     await page.waitForTimeout(300);
     const autoOff = await page.evaluate(() => TYRANO.kag.stat.is_auto === false);
     check("オートのボタンで、オートを入り切りできる", autoOn && autoOff);
+    check("オンのボタンは朱の地に白の字", onColor === "rgb(232, 80, 42) / rgb(255, 255, 255)", onColor);
 
     check("ブラウザのエラーがない", errors.length === 0, errors.slice(0, 5).join(" / "));
     await browser.close();

@@ -36,6 +36,8 @@
             this.speakers = opts.speakers || {};
             var base = document.querySelector(".tyrano_base") || document.body;
             if (this.hud && this.hud.parentNode) this.hud.parentNode.removeChild(this.hud);
+            // [loadjs] で読み直したとき、前の AdvUI が作った部品が残らないようにする
+            Array.prototype.forEach.call(document.querySelectorAll(".li-hud, .li-ops-layer"), function (n) { n.parentNode.removeChild(n); });
 
             var hud = el("div", "li-hud");
             hud.appendChild(el("div", "li-band top"));
@@ -88,8 +90,16 @@
             if (this.opsLayer && this.opsLayer.parentNode) this.opsLayer.parentNode.removeChild(this.opsLayer);
             var opsLayer = el("div", "li-ops-layer");
             opsLayer.appendChild(ops);
+            // 「状態」ボタン（adv-ui.md 右上、884, 32, 112×48）。day_ui を読み込んだときだけ出す
+            this.statusBtn = el("div", "li-status-btn", "状態");
+            ["click", "mousedown", "touchstart"].forEach(function (ev) {
+                this.statusBtn.addEventListener(ev, function (e) { e.stopPropagation(); });
+            }, this);
+            this.statusBtn.addEventListener("click", function () { if (window.DayUI) window.DayUI.openStatus(); });
+            opsLayer.appendChild(this.statusBtn);
             base.appendChild(opsLayer);
             this.opsLayer = opsLayer;
+            this.setStatusButton(!!window.DayUI);
 
             // 会話の枠（message0）より下、立ち絵より上に置きたいので、message0 の直前に入れる
             var msg = base.querySelector(".message0_fore");
@@ -110,7 +120,19 @@
                 if (weather) f.weather = weather;
                 if (next != null) f.next_hint = next;
             }
+            if (next != null) this.lineOverride = null;
             this.render();
+        },
+
+        // 「次にやること」の1行を、f.next_hint を変えずに出す（行動を選ぶ画面の K1・K2・ヒント用）。
+        // kind：K1・K2 は色を変える（menu-ui.md 1-5）。text が null なら f.next_hint に戻す
+        setNextLine: function (text, kind) {
+            this.lineOverride = text == null ? null : { text: text, kind: kind || "hint" };
+            this.render();
+        },
+
+        setStatusButton: function (on) {
+            if (this.statusBtn) this.statusBtn.style.display = on ? "" : "none";
         },
 
         f: function () {
@@ -133,7 +155,14 @@
             this.leftEl.appendChild(document.createTextNode("GM との勝負まで "));
             this.leftEl.appendChild(el("b", "", String(left)));
             this.leftEl.appendChild(document.createTextNode(" 日"));
-            this.nextEl.textContent = f.next_hint ? "次にやること：" + f.next_hint : "";
+            var lo = this.lineOverride;
+            if (lo) {
+                this.nextEl.textContent = (lo.kind === "K1" || lo.kind === "K2") ? lo.text : "次にやること：" + lo.text;
+                this.nextEl.className = "li-next " + String(lo.kind).toLowerCase();
+            } else {
+                this.nextEl.textContent = f.next_hint ? "次にやること：" + f.next_hint : "";
+                this.nextEl.className = "li-next";
+            }
         },
 
         // 名前の札の文字が変わったら、顔の絵と札の色を切りかえる

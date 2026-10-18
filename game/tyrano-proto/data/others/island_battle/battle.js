@@ -23,11 +23,15 @@
  *   trainCount, dex, wis, items { herb, medicine }, itemLimit, dev, facilities
  *                 省略すると f.train_count、f.dex、f.wis、f.item_herb、f.item_medicine、f.dev、f.built_* から作る
  *                 （発展度は cfg.dev → f.dev → 建てた施設の数、の順に使う）
- *   interruptAt   決戦の前半：GM の支配の力がこの割合以下で止める（既定 0.5）
+ *   interruptAt   決戦の前半：GM の支配の力がこの割合以下で止める（既定 0.5。2人で挑むとき）
+ *   interruptHp   決戦の前半：GM の支配の力がこの値以下で止める（全員で挑むときの既定 400。
+ *                 全員のとき GM の支配の力は max(600, 1100 − 100 × 発展度)。battle.md 4-2・5-1・7-1、life-bond.md 3章）
  *   resumeState   決着：f.battle_state を渡して、前半の終わりから始める
  *   finisher      決着：絆の大技でとどめを刺す（phase "finish" なら既定で true）
- *   rewards, rareRewards, rareChance
+ *   rewards, rareRewards, rareChance, rareAlt
  *                 勝ったときに f に足す数（{ item_food: 3 } のように変数名で書く）
+ *                 めずらしい報酬が好物とだぶるとき（RARE_BLOCKS。explore_cards.md 冒頭の表）は出さず、
+ *                 rareAlt（省略すると敵の rareAlt、なければ 薬 ×1）に置きかえる（battle.md 4-1）
  *   rules         RULES の一部を上書きする（{ guard: { base: 0.5 } } のように）
  *
  * 書き戻し（battle.md 7-4）:
@@ -106,12 +110,15 @@
         comboName: "連携攻撃",
         comboPower: 40,
         resolveMult: 1.25,
-        // 4-1 めずらしい報酬
+        // 4-1 めずらしい報酬。好物がだぶるときの代わり（explore_cards.md の各戦闘の「代わり」。案）
         rare: { base: 0.10, perWis: 0.05, max: 0.5 },
+        rareAlt: { item_medicine: 1 },
         // 7-4 探索で負けたとき
         loseHpCost: 3,
-        // 5-1 割り込み
+        // 5-1 割り込み（2人で挑むとき：割合）
         interruptAt: 0.5,
+        // 4-2、5-1 全員で挑むとき：支配の力 ＝ max(min, base − perDev × 発展度)、interruptHp 以下で中盤へ
+        allFinal: { base: 1100, perDev: 100, min: 600, interruptHp: 400 },
         // 5-2 発展度と施設
         seal: { alwaysUpTo: 2, firstGuardUpTo: 4 }, // 0〜2：毎回、3〜4：1回目だけ防ぐ、5〜：なくならない
         facilities: { stoveHp: 10, fieldHerb: 2, houseMind: 10, towerDef: 2, dockDamage: 30 },
@@ -130,7 +137,7 @@
         nushi: {
             name: "森のぬし", hp: 90, atk: 12, def: 2, boss: true,
             pattern: [{}, {}, { name: "地ならし", type: "all", power: 10, warn: "森のぬしが、前足を高く上げた……！" }],
-            rewards: { item_food: 4, item_wood: 3 }, rareRewards: { item_soy_seed: 1 },
+            rewards: { item_food: 4, item_wood: 3 }, rareRewards: { item_soy_seed: 1 }, rareAlt: { item_medicine: 1 },
         },
         bat: {
             name: "洞窟のコウモリ", hp: 18, atk: 6, def: 0,
@@ -145,7 +152,7 @@
         eagle: {
             name: "山頂の大鷲", hp: 60, atk: 14, def: 1,
             pattern: [{}, {}, { name: "急降下", power: 28, warn: "大鷲が、高く舞い上がった……！" }],
-            rewards: { item_food: 2 }, rareRewards: { gift_white_flower: 1 },
+            rewards: { item_food: 2 }, rareRewards: { gift_white_flower: 1 }, rareAlt: { item_medicine: 1 },
         },
         familiar: {
             // 金具 ×2 は、変数名が台本にないので入れていない
@@ -154,7 +161,8 @@
             rewards: { item_medicine: 1 },
         },
         gm: {
-            name: "GM（黒瀬カイ）", hp: 400, hpAll: 800, atk: 20, def: 4, boss: true,
+            // 全員で挑むときの支配の力は RULES.allFinal から計算する（allPower）
+            name: "GM（黒瀬カイ）", hp: 400, allPower: true, atk: 20, def: 4, boss: true,
             pattern: [
                 {},
                 { name: "囁き", type: "mind", power: 15, target: "hero" },
@@ -167,6 +175,18 @@
         illusion_kabane: { name: "村娘の影", hp: 50, atk: 10, def: 0, pattern: [{ target: "kabane", blockSkill: true }] },
         illusion_hakuren: { name: "白い旗の民の影", hp: 50, atk: 10, def: 0, pattern: [{ target: "hakuren", mindOnHit: 10 }] },
         illusion_ignia: { name: "竜の群れの影", hp: 50, atk: 10, def: 0, pattern: [{ type: "all", power: 5 }] },
+    };
+
+    // 好物がだぶるとき（explore_cards.md 冒頭「好物がだぶるとき」の表、life-bond.md 1-1・1-6）：
+    // めずらしい報酬の変数名 → 出さない条件。好物か途中の物を持っている、植えた、渡した
+    var RARE_BLOCKS = {
+        gift_white_flower: function (f) {
+            return num(f.gift_white_flower, 0) > 0 || num(f.gave_white_flower, 0) > 0;
+        },
+        item_soy_seed: function (f) {
+            return num(f.item_soy_seed, 0) > 0 || num(f.item_soy, 0) > 0 || num(f.gift_fried_tofu, 0) > 0 ||
+                num(f.soy_plant_day, 0) !== 0 || num(f.gave_fried_tofu, 0) > 0;
+        },
     };
 
     var ITEM_NAMES = {
@@ -264,7 +284,10 @@
     function makeEnemy(spec, rules, opts) {
         var e = typeof spec === "string" ? Object.assign({ key: spec }, ENEMIES[spec]) : Object.assign({}, spec.preset ? ENEMIES[spec.preset] : {}, spec);
         if (!e.name) e.name = "敵";
-        if (opts.all && e.hpAll) e.hp = e.hpAll;
+        if (opts.all && e.allPower) {
+            var A = rules.allFinal;
+            e.hp = Math.max(A.min, A.base - A.perDev * num(opts.dev, 0));
+        }
         e.def = num(e.def, 0);
         e.pattern = e.pattern && e.pattern.length ? e.pattern : [{}];
         return e;
@@ -281,7 +304,6 @@
         this.final = c.mode === "final";
         this.resume = this.final && c.phase === "finish" && c.resumeState ? clone(c.resumeState) : null;
         this.finisher = c.finisher != null ? !!c.finisher : this.final && c.phase === "finish";
-        this.interruptAt = this.final && c.phase !== "finish" ? num(c.interruptAt, R.interruptAt) : null;
 
         // 相棒
         var partner = c.partner;
@@ -289,6 +311,15 @@
         partner = partner || "";
         this.partnerId = partner;
         var allMode = partner === "all";
+
+        // 決戦の前半の割り込み：2人は割合（interruptAt）、全員は値（interruptHp。既定 400）
+        var firstHalf = this.final && c.phase !== "finish";
+        this.interruptAt = firstHalf ? num(c.interruptAt, R.interruptAt) : null;
+        this.interruptHp = null;
+        if (firstHalf) {
+            if (c.interruptHp != null) this.interruptHp = num(c.interruptHp, 0);
+            else if (allMode && c.interruptAt == null) this.interruptHp = R.allFinal.interruptHp;
+        }
 
         // 施設と発展度（決戦だけ）
         var fac = c.facilities;
@@ -345,7 +376,7 @@
         // 敵
         var specs = c.enemies && c.enemies.length ? c.enemies : this.defaultEnemies(allMode);
         this.enemies = specs.map(function (s) {
-            var e = makeEnemy(s, R, { all: allMode });
+            var e = makeEnemy(s, R, { all: allMode, dev: self.dev });
             return Object.assign({ maxHp: e.hp, alive: true, acts: 0, tempDef: 0, tempDefLeft: 0, burn: null, halfDone: false }, e);
         });
         var bossIdx = this.enemies.findIndex(function (e) { return e.boss; });
@@ -1107,7 +1138,8 @@
         var lose = this.party.every(function (p) { return p.hp <= 0; });
         var boss = this.boss();
         // 前半の割り込みは、一撃で 0 になっても（alive より先に）判定する。とどめは決着の絆の大技で刺す（5-5）
-        var interrupt = !lose && this.interruptAt != null && !!boss && boss.hp <= boss.maxHp * this.interruptAt;
+        var limit = !boss ? 0 : this.interruptHp != null ? this.interruptHp : boss.maxHp * this.interruptAt;
+        var interrupt = !lose && this.interruptAt != null && !!boss && boss.hp <= limit;
         if (interrupt) {
             win = false;
             if (boss.hp <= 0) { boss.hp = 1; boss.alive = true; } // 決着を支配の力 1 から始める
@@ -1133,9 +1165,19 @@
         var rare = c.rareRewards || (this.final ? null : boss.rareRewards);
         var chance = c.rareChance != null ? num(c.rareChance, 0) : Math.min(R.rare.max, R.rare.base + R.rare.perWis * this.wis);
         this.gotRare = false;
+        this.rareReplaced = [];
         if (rare && Math.random() < chance) {
             this.gotRare = true;
-            Object.keys(rare).forEach(function (k) { rewards[k] = (rewards[k] || 0) + rare[k]; });
+            // 好物がだぶるときは、その報酬を出さずに代わり（薬 ×1 など）にする（battle.md 4-1）
+            var f = this.f, give = Object.assign({}, rare);
+            var blocked = Object.keys(rare).filter(function (k) { return RARE_BLOCKS[k] && RARE_BLOCKS[k](f); });
+            if (blocked.length) {
+                blocked.forEach(function (k) { delete give[k]; });
+                var alt = c.rareAlt || (this.final ? null : boss.rareAlt) || R.rareAlt || {};
+                Object.keys(alt).forEach(function (k) { give[k] = (give[k] || 0) + alt[k]; });
+                this.rareReplaced = blocked;
+            }
+            Object.keys(give).forEach(function (k) { rewards[k] = (rewards[k] || 0) + give[k]; });
         }
         this.rewards = rewards;
         var names = Object.keys(rewards).map(function (k) { return (ITEM_NAMES[k] || k) + " ×" + rewards[k]; });
@@ -1205,6 +1247,7 @@
             bossHp: this.boss() ? Math.max(0, this.boss().hp) : 0,
             rewards: this.rewards || null,
             rare: !!this.gotRare,
+            rareReplaced: (this.rareReplaced || []).slice(),
             itemsUsed: this.itemsUsed,
             turns: this.turn,
             history: this.history.slice(),
@@ -1222,6 +1265,7 @@
     var IslandBattle = window.IslandBattle = {
         RULES: RULES,
         ENEMIES: ENEMIES,
+        RARE_BLOCKS: RARE_BLOCKS,
         retries: 0,
         start: function (cfg) {
             if (IslandBattle.current && !IslandBattle.current.destroyed) IslandBattle.current.destroy();
