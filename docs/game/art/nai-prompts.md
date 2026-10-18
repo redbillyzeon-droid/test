@@ -298,8 +298,7 @@ profile, from side, face in shadow, shaded face, standing, full body, simple bac
 **要確認（まとめ）**：
 
 - Ver5 と Ver4.5 のモデルの正式な名前と、API で指定する名前。2026-10-18 に API で確かめた：Ver4.5 は `nai-diffusion-4-5-full`、Ver5 は `nai-diffusion-5-full`（`--model nai-diffusion-5-full`）で、どちらも生成できた。Ver5 の名前は公式の資料にはなく、コミュニティのツールが使う名前を試したもの。
-- Ver4.5 で参照画像を使うときは、画像をそのまま送らず、先に `https://image.novelai.net/ai/encode-vibe` で vibe に変換してから `reference_image_multiple` に入れる（`D:\AI社員	ools
-ai_generate.py` の実績。生の画像だと 500 になる）。`nai_generate.py` はまだこの形に対応していない。
+- Ver4.5 で参照画像を使うときは、画像をそのまま送らず、先に `https://image.novelai.net/ai/encode-vibe` で vibe に変換してから `reference_image_multiple` に入れる（`D:/AI社員/tools/nai_generate.py` の実績。生の画像だと 500 になる）。`nai_generate.py` はまだこの形に対応していない。
 - Ver5 と Ver4.5 で、プロンプトの書き方（タグと自然な文の扱い、品質のタグを自動で足すかどうか など）がどう違うか。
 - 参照画像の機能の**正式な名前**、設定の項目（強さなど）と**おすすめの値**、API での指定のしかた。この文書では「参照画像の機能」と呼ぶ。値は試しながら決め、決めた値を下の表に書く。
 - 参照画像の機能を使うと Anlas（有料のポイント）がいくら増えるか。
