@@ -165,13 +165,13 @@ white bone tattoo, skeletal tattoo on forearms, clavicle tattoo, arm tattoo, col
 見た目の基本：
 
 ```
-1girl, adult, mature female, tall, muscular female, toned, abs, tiger girl, tiger ears, tiger tail, white hair, streaked hair, black streaks, long hair, high ponytail, golden eyes, sharp eyes, medium breasts
+1girl, adult, mature female, tall, muscular female, toned, tiger girl, tiger ears, tiger tail, white hair, streaked hair, black streaks, long hair, high ponytail, golden eyes, sharp eyes, medium breasts
 ```
 
 服装・小物：
 
 ```
-chinese armor, ancient chinese armor, shoulder armor, vambraces, armored skirt, red cloth, tassel, holding spear, polearm, spear held upright
+chinese armor, ancient chinese armor, dark steel armor, black lacquered armor, shoulder armor, vambraces, armored skirt, black cloth, dark navy cloth, black tassel, holding spear, polearm, spear held upright
 ```
 
 | 表情 | ファイル名 | 表情のタグ |
@@ -185,7 +185,10 @@ chinese armor, ancient chinese armor, shoulder armor, vambraces, armored skirt, 
 
 構図：槍を持つので、共通の構図のタグから `arms at sides` を外し、`spear held upright` で槍をまっすぐ立てて持たせる（槍の先が画面から切れないように）。
 
-ネガティブに足す：`furry, animal nose, extra ears, orange fur, tiger print, western armor, knight, japanese armor, samurai, broken spear, multiple weapons`
+ネガティブに足す：`furry, animal nose, extra ears, orange fur, tiger print, western armor, knight, japanese armor, samurai, broken spear, multiple weapons, red cloth, red armor, gold armor, copyright, logo, text`
+
+- 2026-10-20 に直した（評価役の確認による）：`red cloth, tassel` を `black cloth, dark navy cloth, black tassel` に替え、`dark steel armor, black lacquered armor` を足した（コノハの白と赤から離し、名前の札の色「白と黒」に合わせる）。`abs` を外した（鎧と一緒だと腹を出した鎧になりやすいため。武人なので鎧で覆う）。
+- 全身がほぼ黒になる。夜の暗い背景で体が沈んで見えないかは、背景に重ねて要確認。沈むときは、鎧を「黒と銀」に少し明るくして作り直す。
 
 - 崩れやすいところ：西洋の鎧や日本の鎧になる、虎の縞が服や肌の柄になる、槍が曲がる・2本になる、手と槍の握りが崩れる。
 - 「古い中華風の武具」は `chinese armor, ancient chinese armor` で表す。このタグが Ver5／Ver4.5 で中華風の鎧として効くかは**要確認**。
@@ -365,6 +368,7 @@ Seed の数字に意味はない（あとで探しやすいように、キャラ
 | **コノハ** | 通常 | 試作 Ver5（**基準の絵**） | `v5_konoha_normal_seed340993522.png` | 340993522 | `nai-diffusion-5-full` | 832×1216 | 2-2 のとおり（基本・服装・通常の表情・1-3 の構図・画風・品質） | 2-2 のとおり ＋ `off shoulder, bare shoulders, cleavage, socks, tabi`（Ver5 は肩出し・胸元・足袋が出やすかったため） | — | — | 肩を出さない、素足に草履、しっぽは中くらいで右へ出る。鈴は2つ（Ver5 は `bell hair ornament` を左右一対で描きやすい。利用者が2つでよいと判断）。全13枚（Ver4.5 5枚、Ver5 8枚）から利用者が選んだ | 2026-10-18 |
 | **ノクティア** | 通常 | 試作 Ver5（**基準の絵**） | `v5_noctia_normal_seed2483128904.png` | 2483128904 | `nai-diffusion-5-full` | 832×1216 | 2-1 のとおり（基本・服装・通常の表情・1-3 の構図・画風・品質） | 2-1 のとおり（足したものなし） | — | — | 長いストレートの黒髪が設定どおり、長袖のドレスで胸元にレース。表情は「口を閉じた微笑み」のタグでも口が少し開いて牙が見える（`fangs` の影響と思われる。4枚とも同じ）。ランダムな Seed の4枚から利用者が選んだ | 2026-10-18 |
 | **カバネ** | 通常 | 試作 Ver5（**基準の絵**） | `v5_kabane_normal_b_seed2378716315.png` | 2378716315 | `nai-diffusion-5-full` | 832×1216 | 2-3 のとおり（2026-10-18 に直した版） | 2-3 のとおり（2026-10-18 に直した版） | — | — | 前腕と二の腕の白い骨が骨格の位置に透けて見える。白い爪、片手首に赤い紐。鎖骨の模様は髪に隠れて出ていない（あとで描き足す）。前の版の3枚（花の腕の模様、文字入り）は使わない。直した版の4枚から、評価役の確認を経て利用者が選んだ | 2026-10-18 |
+| **ハクレン** | 通常 | 試作 Ver5（**基準の絵**） | `v5_hakuren_normal_seed567257107.png` | 567257107 | `nai-diffusion-5-full` | 832×1216 | 2-4 のとおり（2026-10-20 に直した版。構図は `arms at sides` を外す） | 2-4 のとおり（2026-10-20 に直した版） | — | — | 雲の模様を彫った暗い鎧、黒い房飾りつきの槍で、四神の格がある。白い髪に黒の縞、虎の耳、白黒の縞のしっぽ。全身がほぼ黒（夜の背景で要確認）。ランダムな Seed の4枚から利用者が選んだ | 2026-10-20 |
 
 - 生成した画像と、`nai_generate.py` が一緒に保存する設定の JSON は `outputs/nai/` にある（Git 管理外）。この表は、どれを採用したかを残すためのもの。
 - 採用した Seed は、ほかの絵（一枚絵など）でも同じキャラクターに使い回す（`asset-list.md` の「生成するときの注意」）。
