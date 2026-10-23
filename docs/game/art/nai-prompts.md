@@ -199,13 +199,13 @@ chinese armor, ancient chinese armor, dark steel armor, black lacquered armor, s
 見た目の基本：
 
 ```
-1girl, adult, mature female, tall, dragon girl, small horns, dragon horns, dragon tail, scales on tail, red-brown hair, auburn hair, very long hair, messy hair, golden eyes, slit pupils, large breasts
+1girl, adult, mature female, tall, dragon girl, small horns, dragon horns, dragon tail, scales on tail, dark red hair, deep auburn hair, copper hair, very long hair, messy hair, golden eyes, slit pupils, large breasts
 ```
 
 服装・小物：
 
 ```
-loose clothes, oversized clothes, loose robe, off shoulder, wide sleeves, sleeves past wrists, barefoot
+loose clothes, oversized clothes, loose robe, dark green robe, cream inner robe, off shoulder, wide sleeves, barefoot
 ```
 
 | 表情 | ファイル名 | 表情のタグ |
@@ -217,7 +217,11 @@ loose clothes, oversized clothes, loose robe, off shoulder, wide sleeves, sleeve
 | 悲しみ | `ignia_sad` | `sad, downcast eyes, closed mouth` |
 | 真剣（目を覚ました顔） | `ignia_serious` | `serious, wide open eyes, sharp eyes, glowing eyes, closed mouth` |
 
-ネガティブに足す：`furry, extra ears, large horns, long horns, wings, dragon wings, armor, muscular female, scales on face`
+ネガティブに足す：`furry, extra ears, large horns, long horns, wings, dragon wings, armor, muscular female, scales on face, orange hair, copyright, logo, text`
+
+- 2026-10-23 に直した（評価役の確認による）：髪を `dark red hair, deep auburn hair, copper hair` にし、ネガティブに `orange hair` を足した（コノハの橙から離す）。服の色 `dark green robe, cream inner robe` を足した（ほかの4人と重ならない）。`sleeves past wrists` を外した（幼く見えやすいため）。
+- 表に「通常」がないので、基準の絵は「ぼんやり」の表情で作った。
+- しっぽは、設定の「小さな尻尾」より大きく、床まで届く絵になった（4枚とも同じ）。
 
 - 崩れやすいところ：角が大きくなる、翼が生える、ゆったりした服が鎧や露出の多い服になる、うろこが顔中に出る。
 - 「赤銅色」は Danbooru 系に決まったタグがないので、`red-brown hair, auburn hair` で表す（案）。色が赤すぎる・茶色すぎるときは、片方を外して試す。
@@ -369,6 +373,7 @@ Seed の数字に意味はない（あとで探しやすいように、キャラ
 | **ノクティア** | 通常 | 試作 Ver5（**基準の絵**） | `v5_noctia_normal_seed2483128904.png` | 2483128904 | `nai-diffusion-5-full` | 832×1216 | 2-1 のとおり（基本・服装・通常の表情・1-3 の構図・画風・品質） | 2-1 のとおり（足したものなし） | — | — | 長いストレートの黒髪が設定どおり、長袖のドレスで胸元にレース。表情は「口を閉じた微笑み」のタグでも口が少し開いて牙が見える（`fangs` の影響と思われる。4枚とも同じ）。ランダムな Seed の4枚から利用者が選んだ | 2026-10-18 |
 | **カバネ** | 通常 | 試作 Ver5（**基準の絵**） | `v5_kabane_normal_b_seed2378716315.png` | 2378716315 | `nai-diffusion-5-full` | 832×1216 | 2-3 のとおり（2026-10-18 に直した版） | 2-3 のとおり（2026-10-18 に直した版） | — | — | 前腕と二の腕の白い骨が骨格の位置に透けて見える。白い爪、片手首に赤い紐。鎖骨の模様は髪に隠れて出ていない（あとで描き足す）。前の版の3枚（花の腕の模様、文字入り）は使わない。直した版の4枚から、評価役の確認を経て利用者が選んだ | 2026-10-18 |
 | **ハクレン** | 通常 | 試作 Ver5（**基準の絵**） | `v5_hakuren_normal_seed567257107.png` | 567257107 | `nai-diffusion-5-full` | 832×1216 | 2-4 のとおり（2026-10-20 に直した版。構図は `arms at sides` を外す） | 2-4 のとおり（2026-10-20 に直した版） | — | — | 雲の模様を彫った暗い鎧、黒い房飾りつきの槍で、四神の格がある。白い髪に黒の縞、虎の耳、白黒の縞のしっぽ。全身がほぼ黒（夜の背景で要確認）。ランダムな Seed の4枚から利用者が選んだ | 2026-10-20 |
+| **イグニア** | ぼんやり | 試作 Ver5（**基準の絵**） | `v5_ignia_normal_seed3613626378.png` | 3613626378 | `nai-diffusion-5-full` | 832×1216 | 2-5 のとおり（2026-10-23 に直した版。表情は「ぼんやり」） | 2-5 のとおり（2026-10-23 に直した版） | — | — | 濃い赤銅色の長い髪、小さな角、金の瞳。深い緑の羽織に生成りの着物、左肩を出す。しっぽは茶色のうろこで大きい（設定は「小さな尻尾」）。ランダムな Seed の4枚から利用者が選んだ | 2026-10-23 |
 
 - 生成した画像と、`nai_generate.py` が一緒に保存する設定の JSON は `outputs/nai/` にある（Git 管理外）。この表は、どれを採用したかを残すためのもの。
 - 採用した Seed は、ほかの絵（一枚絵など）でも同じキャラクターに使い回す（`asset-list.md` の「生成するときの注意」）。
