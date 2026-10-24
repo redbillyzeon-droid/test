@@ -293,7 +293,7 @@ casual clothes, beige cardigan, white blouse, long skirt, small necklace
 立ち絵は「横顔（顔をはっきり見せない）」の1枚だけ。プロローグでだけ使う。
 
 ```
-1boy, adult, mature male, around 35 years old, short hair, black hair, slicked back hair, business suit, dark suit, necktie, wristwatch, leather shoes, shiny shoes,
+1boy, adult, mature male, around 30 years old, slim, stylish, handsome, short hair, black hair, styled hair, business suit, dark suit, slim fit suit, necktie, wristwatch, leather shoes, shiny shoes,
 profile, from side, face in shadow, shaded face, standing, full body, simple background, white background
 ```
 
@@ -301,7 +301,10 @@ profile, from side, face in shadow, shaded face, standing, full body, simple bac
 |---|---|---|
 | 横顔 | `sakuma_profile` | （上のプロンプトのまま。表情のタグは入れない） |
 
-ネガティブに足す：`breasts, female, 1girl, looking at viewer, facing viewer, detailed face, casual clothes`
+ネガティブに足す：`breasts, female, 1girl, looking at viewer, facing viewer, detailed face, casual clothes, old man, middle-aged, wrinkles, fat, beer belly, copyright, logo, text`
+
+- 2026-10-24 に直した（利用者の指摘「おじさんすぎる」）：年齢を 35 歳から 30 歳くらいにし、`slim, stylish, handsome`・`slim fit suit` を足し、`slicked back hair` を `styled hair` に替えた。ネガティブに `old man, middle-aged, wrinkles, fat, beer belly` を足した。
+- 画風と品質のタグ（`soft lighting, anime coloring, masterpiece, best quality, very aesthetic, absurdres`）も足して作った。共通の構図の例外なので、正面向きのタグと、ネガティブの `from side` は入れない。
 
 - 共通の構図（正面、目線）の例外。顔をはっきり見せないため、横向きで顔に影を落とす。
 - 「いい靴は男の名刺だ」の口ぐせに合わせて、磨いた革靴を描く（案）。年齢 35 歳くらい、髪型、腕時計は案。
@@ -379,6 +382,7 @@ Seed の数字に意味はない（あとで探しやすいように、キャラ
 | **イグニア** | ぼんやり | 試作 Ver5（**基準の絵**） | `v5_ignia_normal_seed3613626378.png` | 3613626378 | `nai-diffusion-5-full` | 832×1216 | 2-5 のとおり（2026-10-23 に直した版。表情は「ぼんやり」） | 2-5 のとおり（2026-10-23 に直した版） | — | — | 濃い赤銅色の長い髪、小さな角、金の瞳。深い緑の羽織に生成りの着物、左肩を出す。しっぽは茶色のうろこで大きい（設定は「小さな尻尾」）。ランダムな Seed の4枚から利用者が選んだ | 2026-10-23 |
 | **黒瀬カイ** | 素顔（無表情） | 試作 Ver5（**基準の絵**） | `v5_kai_blank_b_seed126658752.png` | 126658752 | `nai-diffusion-5-full` | 832×1216 | 3章のとおり（2026-10-24 に直した版） | 3章のとおり（2026-10-24 に直した版） | — | — | ひげなしの整った顔、乱れた前髪、長いダブルのトレンチコートに黒い服と手袋。コートは生成り寄り、目の光のなさは弱い。直した版の4枚から利用者が選んだ | 2026-10-24 |
 | **ミサキ** | 通常 | 試作 Ver5（**基準の絵**） | `v5_misaki_normal_seed1692919995.png` | 1692919995 | `nai-diffusion-5-full` | 832×1216 | 4章のとおり | 4章のとおり ＋ `copyright, logo, text` | — | — | 茶色のボブ、ベージュのカーディガン、白いブラウス、淡い桃色のロングスカート、細いネックレス。頬に少し赤み。島のヒロインと違う、落ち着いた現実の服（評価役の意見と合う）。ランダムな Seed の4枚から利用者が選んだ | 2026-10-24 |
+| **先輩（佐久間）** | 横顔 | 試作 Ver5（**基準の絵**） | `v5_sakuma_profile_b_seed4108730434.png` | 4108730434 | `nai-diffusion-5-full` | 832×1216 | 5章のとおり（2026-10-24 に直した版） | 5章のとおり（2026-10-24 に直した版） | — | — | 30歳くらいの細身、細身のスーツに片手をポケット、あごを上げた自信のある横顔。顔は影に沈み、形だけ分かる。前の版（35歳）は年上に見えすぎたため作り直した。直した版の4枚から利用者が選んだ | 2026-10-24 |
 
 - 生成した画像と、`nai_generate.py` が一緒に保存する設定の JSON は `outputs/nai/` にある（Git 管理外）。この表は、どれを採用したかを残すためのもの。
 - 採用した Seed は、ほかの絵（一枚絵など）でも同じキャラクターに使い回す（`asset-list.md` の「生成するときの注意」）。
