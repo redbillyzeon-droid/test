@@ -233,13 +233,13 @@ loose clothes, oversized clothes, loose robe, dark green robe, cream inner robe,
 見た目の基本：
 
 ```
-1boy, adult, mature male, around 30 years old, tall, slim, black hair, short hair, messy bangs, handsome, dark eyes, empty eyes, dull eyes
+1boy, adult, mature male, around 30 years old, tall, slim, black hair, short hair, messy bangs, handsome, clean-shaven, sharp jawline, refined features, dark eyes, empty eyes
 ```
 
 服装・小物：
 
 ```
-white coat, long coat, black shirt, black pants, black gloves
+white coat, white overcoat, long coat, black shirt, black pants, black gloves
 ```
 
 | 表情 | ファイル名 | 表情のタグ |
@@ -255,7 +255,10 @@ white coat, long coat, black shirt, black pants, black gloves
 - 仮面の影は背景を白にすると影らしく見えないので、`simple background, grey background` で作り、ゲームに入れるときに背景を抜く（案）。
 - 13日目に仮面を外す一枚絵は、この文書の範囲外（asset-list.md の一枚絵）。
 
-ネガティブに足す：`breasts, female, 1girl, colorful clothes, smile`（`smile` は「無表情」と「崩れた顔」のときだけ足す）
+ネガティブに足す：`breasts, female, 1girl, colorful clothes, smile, stubble, facial hair, beard, eye bags, wrinkles, lab coat, copyright, logo, text`（`smile` は「無表情」と「崩れた顔」のときだけ足す）
+
+- 2026-10-24 に直した（利用者の指示「ひげなしで整った顔に」）：`clean-shaven, sharp jawline, refined features` と `white overcoat` を足し、`dull eyes` を外した。ネガティブに `stubble, facial hair, beard, eye bags, wrinkles, lab coat` を足した。前の版では、4枚とも無精ひげと目の下のくまが出て疲れた中年に見え、2枚はコートが白衣に見えた。
+- 直した版では、コートが白ではなく生成り（ベージュ寄り）になり、目の光のなさも弱い。差分や一枚絵で気になるときは、`pure white coat`、`lifeless eyes` を足して試す（要確認）。
 
 - 崩れやすいところ：女性的な顔や体になる、白いコートが別の色になる、目に光が入る。
 - 黒髪、黒い服、手袋は characters.md にない案。
@@ -374,6 +377,7 @@ Seed の数字に意味はない（あとで探しやすいように、キャラ
 | **カバネ** | 通常 | 試作 Ver5（**基準の絵**） | `v5_kabane_normal_b_seed2378716315.png` | 2378716315 | `nai-diffusion-5-full` | 832×1216 | 2-3 のとおり（2026-10-18 に直した版） | 2-3 のとおり（2026-10-18 に直した版） | — | — | 前腕と二の腕の白い骨が骨格の位置に透けて見える。白い爪、片手首に赤い紐。鎖骨の模様は髪に隠れて出ていない（あとで描き足す）。前の版の3枚（花の腕の模様、文字入り）は使わない。直した版の4枚から、評価役の確認を経て利用者が選んだ | 2026-10-18 |
 | **ハクレン** | 通常 | 試作 Ver5（**基準の絵**） | `v5_hakuren_normal_seed567257107.png` | 567257107 | `nai-diffusion-5-full` | 832×1216 | 2-4 のとおり（2026-10-20 に直した版。構図は `arms at sides` を外す） | 2-4 のとおり（2026-10-20 に直した版） | — | — | 雲の模様を彫った暗い鎧、黒い房飾りつきの槍で、四神の格がある。白い髪に黒の縞、虎の耳、白黒の縞のしっぽ。全身がほぼ黒（夜の背景で要確認）。ランダムな Seed の4枚から利用者が選んだ | 2026-10-20 |
 | **イグニア** | ぼんやり | 試作 Ver5（**基準の絵**） | `v5_ignia_normal_seed3613626378.png` | 3613626378 | `nai-diffusion-5-full` | 832×1216 | 2-5 のとおり（2026-10-23 に直した版。表情は「ぼんやり」） | 2-5 のとおり（2026-10-23 に直した版） | — | — | 濃い赤銅色の長い髪、小さな角、金の瞳。深い緑の羽織に生成りの着物、左肩を出す。しっぽは茶色のうろこで大きい（設定は「小さな尻尾」）。ランダムな Seed の4枚から利用者が選んだ | 2026-10-23 |
+| **黒瀬カイ** | 素顔（無表情） | 試作 Ver5（**基準の絵**） | `v5_kai_blank_b_seed126658752.png` | 126658752 | `nai-diffusion-5-full` | 832×1216 | 3章のとおり（2026-10-24 に直した版） | 3章のとおり（2026-10-24 に直した版） | — | — | ひげなしの整った顔、乱れた前髪、長いダブルのトレンチコートに黒い服と手袋。コートは生成り寄り、目の光のなさは弱い。直した版の4枚から利用者が選んだ | 2026-10-24 |
 
 - 生成した画像と、`nai_generate.py` が一緒に保存する設定の JSON は `outputs/nai/` にある（Git 管理外）。この表は、どれを採用したかを残すためのもの。
 - 採用した Seed は、ほかの絵（一枚絵など）でも同じキャラクターに使い回す（`asset-list.md` の「生成するときの注意」）。
